@@ -11,6 +11,7 @@ from transformers import get_scheduler
 from entities import PatchDataset
 from model import PatchClassifier
 import pandas as pd
+from tqdm import tqdm
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
@@ -28,7 +29,7 @@ TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 
 VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
-LEARNING_RATE = 1e-3
+LEARNING_RATE = 1e-4
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -55,8 +56,7 @@ def get_data():
     url_label_test_python = []
     url_label_val = []
 
-
-    for item in items:
+    for item in tqdm(items):
         commit_id = item[0]
         repo = item[1]
         url = repo + '/commit/' + commit_id
