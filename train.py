@@ -51,10 +51,14 @@ def get_data():
     df = df[['commit_id', 'repo', 'partition', 'PL', 'label']]
     items = df.to_numpy().tolist()
 
-    url_label_train = []
-    url_label_test_java = []
-    url_label_test_python = []
-    url_label_val = []
+    label_train = []
+    label_val = []
+    label_test_java = []
+    label_test_python = []
+    url_train = []
+    url_val = []
+    url_test_java = []
+    url_test_python = []
 
     for item in tqdm(items):
         commit_id = item[0]
@@ -64,26 +68,28 @@ def get_data():
         pl = item[3]
         label = item[4]
 
-        data = [url, label]
-
         if partition == 'train':
-            if data not in url_label_train:
-                url_label_train.append(data)
+            if url not in url_train:
+                url_train.append(url)
+                label_train.append(label)
         elif partition == 'val':
-            if data not in url_label_val:
-                url_label_val.append(data)
+            if url not in url_val:
+                url_val.append(url)
+                label_val.append(label)
         elif partition == 'test':
             if pl == 'java':
-                if data not in url_label_test_java:
-                    url_label_test_java.append(data)
+                if url not in url_test_java:
+                    url_test_java.append(url)
+                    label_test_java.append(label)
             else:
-                if data not in url_label_test_python:
-                    url_label_test_python.append(data)
+                if url not in url_test_python:
+                    url_test_python.append(url)
+                    label_test_python.append(label)
         else:
             Exception("Invalid partition: {}".format(partition))
 
     print("Finish reading dataset")
-    return url_label_train, url_label_val, url_label_test_java, url_label_test_python
+    return url_train, url_val, url_test_java, url_test_python, label_train, label_val, label_test_java, label_test_python
 
 
 def test_commit_classifier(model, testing_generator, device):
@@ -194,7 +200,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
 def do_train():
     print("Dataset name: {}".format(dataset_name))
 
-    url_label_train, url_label_val, url_label_test_java, url_label_test_python = get_data()
+    url_train, url_val, url_test_java, url_test_python, label_train, label_val, label_test_java, label_test_python = get_data()
     train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
 
     index = 0
@@ -202,34 +208,30 @@ def do_train():
     id_to_label = {}
 
     print("Preparing data indices...")
-    for i in range(len(url_label_train)):
+    for i, url in enumerate(url_train):
         train_ids.append(index)
-        url = url_label_train[i][0]
-        label = url_label_train[i][1]
+        label = label_val[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i in range(len(url_label_val)):
+    for i, url in enumerate(url_val):
         val_ids.append(index)
-        url = url_label_val[i][0]
-        label = url_label_val[i][1]
+        label = url_val[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i in range(len(url_label_test_java)):
+    for i, url in enumerate(url_test_java):
         test_java_ids.append(index)
-        url = url_label_test_java[i][0]
-        label = url_label_test_java[i][1]
+        label = url_test_java[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i in range(len(url_label_test_python)):
+    for i, url in enumerate(url_test_python):
         test_python_ids.append(index)
-        url = url_label_test_python[i][0]
-        label = url_label_test_python[i][1]
+        label = url_test_python[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
