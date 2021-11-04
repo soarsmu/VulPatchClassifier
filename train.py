@@ -21,9 +21,9 @@ model_folder_path = os.path.join(directory, 'model')
 
 NUMBER_OF_EPOCHS = 50
 
-TRAIN_BATCH_SIZE = 128
-VALIDATION_BATCH_SIZE = 128
-TEST_BATCH_SIZE = 128
+TRAIN_BATCH_SIZE = 512
+VALIDATION_BATCH_SIZE = 512
+TEST_BATCH_SIZE = 512
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
