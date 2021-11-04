@@ -10,6 +10,8 @@ from torch import nn as nn
 directory = os.path.dirname(os.path.abspath(__file__))
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset.csv'
+
 
 CODE_LINE_LENGTH = 512
 
@@ -69,6 +71,7 @@ def write_embeddings_to_files(removed_code_list, added_code_list, url_list, toke
         added_embeddings = url_to_added_embeddings[url]
         data['before'] = removed_embeddings
         data['after'] = added_embeddings
+        url_to_data[url] = data
     for url, data in url_to_data.items():
         file_path = os.path.join(directory, '../file_data/' + url.replace('/', '_') + '.txt')
         json.dump(data, open(file_path, 'w'))
@@ -115,7 +118,7 @@ def get_data():
             added_code_list.append(added_code)
             url_list.append(url)
 
-        if len(url_list) >= 100:
+        if len(url_list) >= 200:
             write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
             removed_code_list = []
