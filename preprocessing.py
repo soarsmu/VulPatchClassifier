@@ -40,14 +40,38 @@ def get_input_and_mask(tokenizer, code_list):
     return inputs.data['input_ids'], inputs.data['attention_mask']
 
 
-def get_file_embeddings(removed_code, added_code, tokenizer, code_bert):
+def get_file_embeddings(code_list, tokenizer, code_bert):
     # process all lines in one
-    input_ids, attention_mask = get_input_and_mask(tokenizer, [removed_code, added_code])
+    input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
     with torch.no_grad():
         embeddings = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0, :]
     embeddings = embeddings.tolist()
-    return embeddings[0], embeddings[1]
+    return embeddings
+
+
+def write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert):
+    removed_embeddings = get_file_embeddings(removed_code_list, tokenizer, code_bert)
+    added_embeddings = get_file_embeddings(added_code_list, tokenizer, code_bert)
+
+    url_to_removed_embeddings = {}
+    url_to_added_embeddings = {}
+    for index, url in enumerate(url_list):
+        if url not in url_to_removed_embeddings:
+            url_to_removed_embeddings[url] = []
+            url_to_added_embeddings[url] = []
+        url_to_removed_embeddings[url].append(removed_embeddings[index])
+        url_to_added_embeddings[url].append(added_embeddings[index])
+
+    url_to_data = {}
+    for url, removed_embeddings in url_to_removed_embeddings.items():
+        data = {}
+        added_embeddings = url_to_added_embeddings[url]
+        data['before'] = removed_embeddings
+        data['after'] = added_embeddings
+    for url, data in url_to_data.items():
+        file_path = os.path.join(directory, '../file_data/' + url.replace('/', '_') + '.txt')
+        json.dump(data, open(file_path, 'w'))
 
 
 def get_data():
@@ -79,21 +103,26 @@ def get_data():
 
         url_to_diff[url].append(diff)
 
-
+    removed_code_list = []
+    added_code_list = []
+    url_list = []
     for url, diff_list in tqdm.tqdm(url_to_diff.items()):
-        file_path = os.path.join(directory, '../file_data/' + url.replace('/', '_') + '.txt')
-        data = {}
         for i, diff in enumerate(diff_list):
             removed_code = tokenizer.sep_token + get_code_version(diff, False)
             added_code = tokenizer.sep_token + get_code_version(diff, True)
 
-            added_embeddings, removed_embeddings = get_file_embeddings(removed_code, added_code, tokenizer, code_bert)
+            removed_code_list.append(removed_code)
+            added_code_list.append(added_code)
+            url_list.append(url)
 
-            data[i] = {}
-            data[i]['before'] = added_embeddings
-            data[i]['after'] = removed_embeddings
+        if len(url_list) >= 100:
+            write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
-        json.dump(data, open(file_path, 'w'))
+            removed_code_list = []
+            added_code_list = []
+            url_list = []
+
+    write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
 
 get_data()
