@@ -128,7 +128,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         num_warmup_steps=0,
         num_training_steps=num_training_steps
     )
-
+    train_losses, valid_losses = [], []
     print("Training...")
     for epoch in range(NUMBER_OF_EPOCHS):
         model.train()
