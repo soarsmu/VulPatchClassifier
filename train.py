@@ -13,7 +13,7 @@ from model import PatchClassifier
 import pandas as pd
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
-
+# dataset_name = 'huawei_sub_data_set.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -129,6 +129,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         num_training_steps=num_training_steps
     )
 
+    print("Training...")
     for epoch in range(NUMBER_OF_EPOCHS):
         model.train()
         print("Calculating commit training loss...")
@@ -200,6 +201,7 @@ def do_train():
     id_to_url = {}
     id_to_label = {}
 
+    print("Preparing data indices...")
     for i in range(len(url_label_train)):
         train_ids.append(index)
         url = url_label_train[i][0]
@@ -232,6 +234,7 @@ def do_train():
         id_to_label[index] = label
         index += 1
 
+    print("Preparing dataset...")
     training_set = PatchDataset(train_ids, id_to_label, id_to_url)
     validation_set = PatchDataset(val_ids, id_to_label, id_to_url)
     test_java_set = PatchDataset(test_java_ids, id_to_label, id_to_url)
