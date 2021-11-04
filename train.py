@@ -13,7 +13,7 @@ from model import PatchClassifier
 import pandas as pd
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
-# dataset_name = 'huawei_sub_data_set.csv'
+# dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -93,7 +93,7 @@ def test_commit_classifier(model, testing_generator, device):
     test_ids = []
     with torch.no_grad():
         model.eval()
-        for ids, before_batch, after_batch, label_batch in testing_generator:
+        for ids, url, before_batch, after_batch, label_batch in testing_generator:
             before_batch, after_batch = before_batch.to(device), after_batch.to(device)
             outs = model(before_batch, after_batch)
 
@@ -134,7 +134,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         model.train()
         print("Calculating commit training loss...")
         current_batch = 0
-        for ids, before_batch, after_batch, label_batch in training_generator:
+        for ids, url, before_batch, after_batch, label_batch in training_generator:
             before_batch, after_batch = before_batch.to(device), after_batch.to(device)
             outs = model(before_batch, after_batch)
             outs = F.softmax(outs, dim=1)
@@ -155,7 +155,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         with torch.no_grad():
             model.eval()
             print("Calculating commit evaluation loss...")
-            for ids, before_batch, after_batch, label_batch in validation_generator:
+            for ids, url, before_batch, after_batch, label_batch in validation_generator:
                 before_batch, after_batch = before_batch.to(device), after_batch.to(device)
                 outs = model(before_batch, after_batch)
                 outs = F.softmax(outs, dim=1)
