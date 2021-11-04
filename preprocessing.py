@@ -127,5 +127,3 @@ def get_data():
 
     write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
-
-get_data()
