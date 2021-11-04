@@ -7,7 +7,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 
 def get_average_value(embeddings):
-    embeddings = torch.DoubleTensor(embeddings)
+    embeddings = torch.FloatTensor(embeddings)
     sum_ = torch.sum(embeddings, dim=0)
     mean_ = torch.div(sum_, embeddings.shape[0])
     mean_ = mean_.detach()
