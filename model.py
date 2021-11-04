@@ -11,7 +11,7 @@ class PatchClassifier(nn.Module):
         self.out_proj = nn.Linear(self.HIDDEN_DIM, 2)
 
     def forward(self, before_batch, after_batch):
-        combined = self.linear(torch.cat([before_batch, after_batch]), axis=1)
+        combined = self.linear(torch.cat([before_batch, after_batch], axis=1))
         out = self.out_proj(combined)
 
         return out
