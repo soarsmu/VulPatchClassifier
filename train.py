@@ -210,28 +210,28 @@ def do_train():
     print("Preparing data indices...")
     for i, url in enumerate(url_train):
         train_ids.append(index)
-        label = label_val[i]
+        label = label_train[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
     for i, url in enumerate(url_val):
         val_ids.append(index)
-        label = url_val[i]
+        label = label_val[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
     for i, url in enumerate(url_test_java):
         test_java_ids.append(index)
-        label = url_test_java[i]
+        label = label_test_java[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
     for i, url in enumerate(url_test_python):
         test_python_ids.append(index)
-        label = url_test_python[i]
+        label = label_test_python[i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
