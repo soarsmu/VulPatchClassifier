@@ -94,7 +94,7 @@ def test_commit_classifier(model, testing_generator, device):
     with torch.no_grad():
         model.eval()
         for ids, url, before_batch, after_batch, label_batch in testing_generator:
-            before_batch, after_batch = before_batch.to(device), after_batch.to(device)
+            before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
             outs = model(before_batch, after_batch)
 
             outs = F.softmax(outs, dim=1)
@@ -135,7 +135,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         print("Calculating commit training loss...")
         current_batch = 0
         for ids, url, before_batch, after_batch, label_batch in training_generator:
-            before_batch, after_batch = before_batch.to(device), after_batch.to(device)
+            before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
             outs = model(before_batch, after_batch)
             outs = F.softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
@@ -156,7 +156,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
             model.eval()
             print("Calculating commit evaluation loss...")
             for ids, url, before_batch, after_batch, label_batch in validation_generator:
-                before_batch, after_batch = before_batch.to(device), after_batch.to(device)
+                before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
                 outs = model(before_batch, after_batch)
                 outs = F.softmax(outs, dim=1)
                 loss = loss_function(outs, label_batch)
