@@ -146,15 +146,15 @@ def custom_collate(batch):
 
     after_features = torch.zeros((len(batch), max_after, 768))
     for i in range(len(batch)):
-        j, k = batch[i][0].size(0), batch[i][0].size(1)
+        j, k = batch[i][2].size(0), batch[i][2].size(1)
         before_features[i] = torch.cat(
-            [batch[i][0],
+            [batch[i][2],
              torch.zeros((max_before - j, k), device=device)])
 
     for i in range(len(batch)):
-        j, k = batch[i][1].size(0), batch[i][1].size(1)
+        j, k = batch[i][3].size(0), batch[i][3].size(1)
         after_features[i] = torch.cat(
-            [batch[i][1],
+            [batch[i][3],
              torch.zeros((max_after - j, k), device=device)])
 
     label = torch.tensor(label)
