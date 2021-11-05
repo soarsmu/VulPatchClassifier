@@ -9,8 +9,8 @@ tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
 empty_code = tokenizer.sep_token + ''
 inputs = tokenizer([empty_code], padding=True, max_length=512, truncation=True, return_tensors="pt")
-input_ids, attention_mask = inputs.data['input_ids'][0], inputs.data['attention_mask'][0]
-empty_embedding = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0, :].tolist()
+input_ids, attention_mask = inputs.data['input_ids'], inputs.data['attention_mask']
+empty_embedding = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[0, 0, :].tolist()
 
 
 # def get_average_value(embeddings):
