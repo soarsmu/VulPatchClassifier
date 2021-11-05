@@ -43,13 +43,13 @@ class PatchDataset(Dataset):
 
         before = data['before']
         after = data['after']
-        if len(before) > 5:
-            before = before[:5]
-        if len(after) > 5:
-            after = after[:5]
-        while len(before) < 5:
+        if len(before) > self.max_data_length:
+            before = before[:self.max_data_length]
+        if len(after) > self.max_data_length:
+            after = after[:self.max_data_length]
+        while len(before) < self.max_data_length:
             before.append(empty_embedding)
-        while len(after) < 5:
+        while len(after) < self.max_data_length:
             after.append(empty_embedding)
 
         before = torch.FloatTensor(before)
