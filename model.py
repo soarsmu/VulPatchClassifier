@@ -18,7 +18,7 @@ class PatchClassifier(nn.Module):
 
         before = self.before_linear(before_batch)
         after = self.after_linear(after_batch)
-        combined = self.linear(torch.cat([before, after], axis=1))
+        combined = self.combine(torch.cat([before, after], axis=1))
         out = self.out_proj(combined)
 
         return out
