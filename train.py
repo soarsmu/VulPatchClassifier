@@ -124,6 +124,44 @@ def test_commit_classifier(model, testing_generator, device):
     return precision, recall, f1, auc, auc_pr
 
 
+def find_max_length(arr):
+    max_len = 0
+    for elem in arr:
+        if len(elem) > max_len:
+            max_len = len(elem)
+    return max_len
+
+
+def custom_collate(batch):
+    id, url, before, after, label = zip(*batch)
+    # before: list embeddings of files
+    max_before = find_max_length(before)
+    if max_before < 5:
+        max_before = 5
+    before_features = torch.zeros((len(batch), max_before, 768))
+
+    max_after = find_max_length(after)
+    if max_after < 5:
+        max_after = 5
+
+    after_features = torch.zeros((len(batch), max_after, 768))
+    for i in range(len(batch)):
+        j, k = batch[i][0].size(0), batch[i][0].size(1)
+        before_features[i] = torch.cat(
+            [batch[i][0],
+             torch.zeros((max_before - j, k), device=device)])
+
+    for i in range(len(batch)):
+        j, k = batch[i][1].size(0), batch[i][1].size(1)
+        after_features[i] = torch.cat(
+            [batch[i][1],
+             torch.zeros((max_after - j, k), device=device)])
+
+    label = torch.tensor(label)
+
+    return id, url, before_features.float(), after_features.float(), label.long()
+
+
 def train(model, training_generator, validation_generator, java_testing_generator, python_testing_generator):
     loss_function = nn.CrossEntropyLoss()
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
@@ -242,10 +280,10 @@ def do_train():
     test_java_set = PatchDataset(test_java_ids, id_to_label, id_to_url)
     test_python_set = PatchDataset(test_python_ids, id_to_label, id_to_url)
 
-    training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    validation_generator = DataLoader(validation_set, **VALIDATION_PARAMS)
-    testing_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
-    testing_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
+    training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
+    validation_generator = DataLoader(validation_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
+    testing_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
+    testing_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
     model = PatchClassifier()
 
