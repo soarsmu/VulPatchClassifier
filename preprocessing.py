@@ -127,3 +127,14 @@ def get_data():
 
     write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
+def get_average_value(embeddings):
+    embeddings = torch.FloatTensor(embeddings)
+    sum_ = torch.sum(embeddings, dim=0)
+    mean_ = torch.div(sum_, embeddings.shape[0])
+    mean_ = mean_.detach()
+    mean_ = mean_.cpu()
+
+    return mean_
+
+
+get_data()
