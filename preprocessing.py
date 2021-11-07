@@ -7,6 +7,8 @@ import tqdm
 from torch import cuda
 from torch import nn as nn
 
+torch.manual_seed(109)
+
 directory = os.path.dirname(os.path.abspath(__file__))
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
@@ -47,6 +49,8 @@ def get_file_embeddings(code_list, tokenizer, code_bert):
     input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
     with torch.no_grad():
+        input_ids = input_ids.to(device)
+        attention_mask = attention_mask.to(device)
         embeddings = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0, :]
     embeddings = embeddings.tolist()
     return embeddings
