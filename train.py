@@ -9,7 +9,7 @@ import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
 from entities import PatchDataset
-from model import PatchClassifier
+from model import PatchClassifier, CnnClassifier
 import pandas as pd
 from tqdm import tqdm
 
@@ -287,7 +287,7 @@ def do_train():
     testing_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
     testing_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
-    model = PatchClassifier()
+    model = CnnClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
