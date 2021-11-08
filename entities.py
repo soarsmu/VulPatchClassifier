@@ -22,6 +22,41 @@ empty_embedding = code_bert(input_ids=input_ids, attention_mask=attention_mask).
 #
 #     return mean_
 
+class PatchDatasetFCN(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url):
+        self.max_data_length = 5
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+        file_path = os.path.join(directory, '../file_data/' + url.replace('/', '_') + '.txt')
+        with open(file_path, 'r') as reader:
+            data = json.loads(reader.read())
+
+        before = data['before']
+        after = data['after']
+        if len(before) > 5:
+            before = before[:5]
+        if len(after) > 5:
+            after = after[:5]
+        while len(before) < 5:
+            before.append(empty_embedding)
+        while len(after) < 5:
+            after.append(empty_embedding)
+
+        before = torch.FloatTensor(before)
+        after = torch.FloatTensor(after)
+
+        y = self.labels[id]
+
+        return int(id), url, before, after, y
+
 
 class PatchDataset(Dataset):
     def __init__(self, list_IDs, labels, id_to_url):
