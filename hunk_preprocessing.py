@@ -101,6 +101,9 @@ def get_hunk_from_diff(diff):
                 hunk_list.append(hunk)
                 hunk = ''
 
+    if not hunk_empty(hunk):
+        hunk_list.append(hunk)
+
     return hunk_list
 
 
