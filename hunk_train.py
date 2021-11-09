@@ -13,8 +13,8 @@ from hunk_model import PatchClassifierByHunk
 import pandas as pd
 from tqdm import tqdm
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset_new.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset_new.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')

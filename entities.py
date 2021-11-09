@@ -4,7 +4,7 @@ import os
 import json
 import torch
 
-hunk_data_folder_name = 'hunk_data_sub'
+hunk_data_folder_name = 'hunk_data'
 
 directory = os.path.dirname(os.path.abspath(__file__))
 tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
