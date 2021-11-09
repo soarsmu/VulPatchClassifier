@@ -132,9 +132,6 @@ def find_max_length(arr):
 def custom_collate(batch):
     id, url, before, after, label = zip(*batch)
 
-    before = torch.FloatTensor(before)
-    after = torch.FloatTensor(after)
-
     # before: list embeddings of files
     max_before = find_max_length(before)
     # if max_before < 5:
@@ -147,14 +144,14 @@ def custom_collate(batch):
 
     after_features = torch.zeros((len(batch), max_after, 768))
     for i in range(len(batch)):
-        before = batch[i][2].to(device)
+        before = torch.FloatTensor(batch[i][2]).to(device)
         j, k = before.size(0), before.size(1)
         before_features[i] = torch.cat(
             [before,
              torch.zeros((max_before - j, k), device=device)])
 
     for i in range(len(batch)):
-        after = batch[i][3].to(device)
+        after = torch.FloatTensor(batch[i][3]).to(device)
         j, k = after.size(0), after.size(1)
         after_features[i] = torch.cat(
             [after,
