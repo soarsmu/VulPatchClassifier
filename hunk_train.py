@@ -14,7 +14,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset.csv'
+dataset_name = 'huawei_sub_dataset_new.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -76,7 +76,7 @@ def get_data():
             if pl == 'java' and url not in url_test_java:
                 url_test_java.append(url)
                 label_test_java.append(label)
-            elif url == 'python' and url not in url_test_python:
+            elif pl == 'python' and url not in url_test_python:
                 url_test_python.append(url)
                 label_test_python.append(label)
         else:
