@@ -197,6 +197,8 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
 
+        train_losses, valid_losses = [], []
+
         with torch.no_grad():
             model.eval()
             print("Result on Java validation dataset...")
