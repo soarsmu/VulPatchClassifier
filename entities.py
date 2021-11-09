@@ -117,8 +117,6 @@ class HunkDataset(Dataset):
         before = data['before']
         after = data['after']
 
-        before = torch.FloatTensor(before)
-        after = torch.FloatTensor(after)
 
         y = self.labels[id]
 
