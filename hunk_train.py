@@ -19,7 +19,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-NUMBER_OF_EPOCHS = 50
+NUMBER_OF_EPOCHS = 100
 
 TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 512
