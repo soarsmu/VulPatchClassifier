@@ -44,6 +44,11 @@ NUMBER_OF_LABELS = 2
 model_path_prefix = model_folder_path + '/patch_classifier_variant_7_09112021_model_'
 
 
+def weights_init(m):
+    classname = m.__class__.__name__
+    if hasattr(m, 'weight') and (classname.find('Embedding') == -1):
+        nn.init.xavier_uniform(m.weight.data, gain=nn.init.calculate_gain('relu'))
+
 def get_data():
     print("Reading dataset...")
     df = pd.read_csv(dataset_name)
@@ -320,6 +325,8 @@ def do_train():
         model = nn.DataParallel(model)
 
     model.to(device)
+    for m in model.modules():
+        weights_init(m)
 
     train(model=model, training_generator=training_generator, val_java_generator=val_java_generator,
           val_python_generator=val_python_generator, test_java_generator=test_java_generator, test_python_generator=test_python_generator)
