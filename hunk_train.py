@@ -22,14 +22,14 @@ model_folder_path = os.path.join(directory, 'model')
 NUMBER_OF_EPOCHS = 100
 
 TRAIN_BATCH_SIZE = 128
-VALIDATION_BATCH_SIZE = 512
-TEST_BATCH_SIZE = 512
+VALIDATION_BATCH_SIZE = 256
+TEST_BATCH_SIZE = 256
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
-LEARNING_RATE = 1e-5
+LEARNING_RATE = 1e-4
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -326,4 +326,5 @@ def do_train():
 
 
 if __name__ == '__main__':
+    torch.multiprocessing.set_start_method('forkserver')
     do_train()
