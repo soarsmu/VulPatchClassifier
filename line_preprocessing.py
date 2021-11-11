@@ -40,4 +40,41 @@ def get_file_to_manual_map():
             writer.write(str(index) + '\n')
 
 
-get_file_to_manual_map()
+def get_code_version(diff, added_version):
+    code = ''
+    lines = diff.splitlines()
+    for line in lines:
+        mark = '+'
+        if not added_version:
+            mark = '-'
+        if line.startswith(mark):
+            line = line[1:].strip()
+            if line.startswith(('//', '/**', '/*',  '*', '*/', '#')) or line == '':
+                continue
+            code = code + line + '\n'
+
+    return code
+
+
+def manual_map():
+    index_list = []
+    with open('missing_file_indices.txt', 'r') as reader:
+        lines = reader.read().split('\n')[:-1]
+        for line in lines:
+            index_list.append(int(line))
+
+    df = pd.read_csv(dataset_name)
+    df = df[['diff']]
+    for index, item in enumerate(df.values.tolist()):
+        if index not in index_list:
+            continue
+        diff = item[0]
+        removed_code = get_code_version(diff, False)
+        added_code = get_code_version(diff, True)
+
+        removed_lines = removed_code.split('\n')[:-1]
+        added_lines = added_code.split('\n')[:-1]
+        print()
+
+
+manual_map()
