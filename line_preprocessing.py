@@ -3,7 +3,7 @@ import pandas as pd
 import json
 import os
 import torch
-import tqdm
+from tqdm import tqdm
 from torch import cuda
 from torch import nn as nn
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ DATASET_REMOVED_FILE_FOLDER_PATH = os.path.join(directory, '../dataset_removed_f
 def get_file_to_manual_map():
     df = pd.read_csv(dataset_name)
     df = df[['commit_id', 'repo']]
-    for index, item in enumerate(df.values.tolist()):
+    for index, item in tqdm(enumerate(df.values.tolist())):
         source_file_path = DATASET_FILE_FOLDER_PATH + '/' + str(index) + '.txt'
         removed_file_file_path = DATASET_REMOVED_FILE_FOLDER_PATH + '/' + str(index) + '.txt'
 
