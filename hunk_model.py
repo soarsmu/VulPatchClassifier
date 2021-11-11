@@ -25,11 +25,11 @@ class PatchClassifierByHunk(nn.Module):
 
     def forward(self, before_batch, after_batch):
         # self.lstm.flatten_parameters()
-        _, (before_final_hidden_state, _) = self.lstm(before_batch)
-        before_vector = before_final_hidden_state[0]
+        before_out, (before_final_hidden_state, _) = self.lstm(before_batch)
+        before_vector = before_out[:, 0]
 
-        _, (after_final_hidden_state, _) = self.lstm(after_batch)
-        after_vector = after_final_hidden_state[0]
+        after_out, (after_final_hidden_state, _) = self.lstm(after_batch)
+        after_vector = after_out[:, 0]
 
         x = self.linear(torch.cat([before_vector, after_vector], axis=1))
 
