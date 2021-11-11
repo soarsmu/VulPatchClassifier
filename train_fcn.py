@@ -20,7 +20,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-NUMBER_OF_EPOCHS = 50
+NUMBER_OF_EPOCHS = 100
 
 TRAIN_BATCH_SIZE = 512
 VALIDATION_BATCH_SIZE = 512
@@ -43,8 +43,9 @@ HIDDEN_DIM = 768
 NUMBER_OF_LABELS = 2
 
 
-model_path_prefix = model_folder_path + '/patch_classifier_variant_6_04112021_model_'
-
+model_path_prefix = model_folder_path + '/patch_classifier_variant_6_best_java_11112021_model_'
+best_java_model_path = model_folder_path + '/patch_classifier_variant_6_best_java_11112021_model.sav'
+best_python_model_path = model_folder_path + '/patch_classifier_variant_6_best_python_11112021_model.sav'
 
 def get_data():
     print("Reading dataset...")
@@ -137,6 +138,8 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
     )
     train_losses, valid_losses = [], []
     print("Training...")
+    best_auc_val_java = 0
+    best_auc_val_python = 0
     for epoch in range(NUMBER_OF_EPOCHS):
         model.train()
         print("Calculating commit training loss...")
@@ -166,53 +169,69 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
                                                            testing_generator=val_java_generator,
                                                            device=device)
 
+            if auc > best_auc_val_java:
+                best_auc_val_java = auc
+                if torch.cuda.device_count() > 1:
+                    torch.save(model.module.state_dict(),
+                               best_java_model_path)
+                else:
+                    torch.save(model.state_dict(), best_java_model_path)
+
+
             print("Precision: {}".format(precision))
             print("Recall: {}".format(recall))
             print("F1: {}".format(f1))
             print("AUC: {}".format(auc))
             print("-" * 32)
 
-            # print("Result on Python validation dataset...")
-            # precision, recall, f1, auc = predict_test_data(model=model,
-            #                                                testing_generator=val_python_generator,
-            #                                                device=device)
-            #
-            # print("Precision: {}".format(precision))
-            # print("Recall: {}".format(recall))
-            # print("F1: {}".format(f1))
-            # print("AUC: {}".format(auc))
-            # print("-" * 32)
-            #
-            # if torch.cuda.device_count() > 1:
-            #     torch.save(model.module.state_dict(),
-            #                model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
-            # else:
-            #     torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
-            #
-            # print("Result on Java testing dataset...")
-            # precision, recall, f1, auc = predict_test_data(model=model,
-            #                                                testing_generator=test_java_generator,
-            #                                                device=device)
-            #
-            # print("Precision: {}".format(precision))
-            # print("Recall: {}".format(recall))
-            # print("F1: {}".format(f1))
-            # print("AUC: {}".format(auc))
-            # print("-" * 32)
-            #
-            # print("Result on Python testing dataset...")
-            # precision, recall, f1, auc = predict_test_data(model=model,
-            #                                                testing_generator=test_python_generator,
-            #                                                device=device)
-            #
-            # print("Precision: {}".format(precision))
-            # print("Recall: {}".format(recall))
-            # print("F1: {}".format(f1))
-            # print("AUC: {}".format(auc))
-            # print("-" * 32)
+            print("Result on Python validation dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=val_python_generator,
+                                                           device=device)
 
-    # print("Loading best checkpoint...")
-    # commit_classifier.load_state_dict(torch.load(commit_classifier_checkpoint_path))
+
+            if auc > best_auc_val_python:
+                best_auc_val_python = auc
+                if torch.cuda.device_count() > 1:
+                    torch.save(model.module.state_dict(),
+                               best_python_model_path)
+                else:
+                    torch.save(model.state_dict(), best_python_model_path)
+
+            print("Precision: {}".format(precision))
+            print("Recall: {}".format(recall))
+            print("F1: {}".format(f1))
+            print("AUC: {}".format(auc))
+            print("-" * 32)
+
+            if torch.cuda.device_count() > 1:
+                torch.save(model.module.state_dict(),
+                           model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
+            else:
+                torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
+
+            print("Result on Java testing dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=test_java_generator,
+                                                           device=device)
+
+            print("Precision: {}".format(precision))
+            print("Recall: {}".format(recall))
+            print("F1: {}".format(f1))
+            print("AUC: {}".format(auc))
+            print("-" * 32)
+
+            print("Result on Python testing dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=test_python_generator,
+                                                           device=device)
+
+            print("Precision: {}".format(precision))
+            print("Recall: {}".format(recall))
+            print("F1: {}".format(f1))
+            print("AUC: {}".format(auc))
+            print("-" * 32)
+
 
 
 def do_train():
