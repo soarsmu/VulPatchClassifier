@@ -26,9 +26,9 @@ TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 256
 TEST_BATCH_SIZE = 256
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
 
 LEARNING_RATE = 1e-4
 
@@ -173,44 +173,44 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
             print("AUC: {}".format(auc))
             print("-" * 32)
 
-            print("Result on Python validation dataset...")
-            precision, recall, f1, auc = predict_test_data(model=model,
-                                                           testing_generator=val_python_generator,
-                                                           device=device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC: {}".format(auc))
-            print("-" * 32)
-
-            if torch.cuda.device_count() > 1:
-                torch.save(model.module.state_dict(),
-                           model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
-            else:
-                torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
-
-            print("Result on Java testing dataset...")
-            precision, recall, f1, auc = predict_test_data(model=model,
-                                                           testing_generator=test_java_generator,
-                                                           device=device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC: {}".format(auc))
-            print("-" * 32)
-
-            print("Result on Python testing dataset...")
-            precision, recall, f1, auc = predict_test_data(model=model,
-                                                           testing_generator=test_python_generator,
-                                                           device=device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC: {}".format(auc))
-            print("-" * 32)
+            # print("Result on Python validation dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=val_python_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
+            #
+            # if torch.cuda.device_count() > 1:
+            #     torch.save(model.module.state_dict(),
+            #                model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
+            # else:
+            #     torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
+            #
+            # print("Result on Java testing dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=test_java_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
+            #
+            # print("Result on Python testing dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=test_python_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
 
 
 def do_train():
