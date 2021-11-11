@@ -43,7 +43,7 @@ HIDDEN_DIM = 768
 NUMBER_OF_LABELS = 2
 
 
-model_path_prefix = model_folder_path + '/patch_classifier_file_to_commit_04112021_model_'
+model_path_prefix = model_folder_path + '/patch_classifier_variant_6_04112021_model_'
 
 
 def get_data():
@@ -93,7 +93,7 @@ def get_data():
     return url_train, url_val, url_test_java, url_test_python, label_train, label_val, label_test_java, label_test_python
 
 
-def test_commit_classifier(model, testing_generator, device):
+def predict_test_data(model, testing_generator, device):
     y_pred = []
     y_test = []
     probs = []
@@ -122,10 +122,10 @@ def test_commit_classifier(model, testing_generator, device):
             auc_pr = 0
 
     print("Finish testing")
-    return precision, recall, f1, auc, auc_pr
+    return precision, recall, f1, auc
 
 
-def train(model, training_generator, validation_generator, java_testing_generator, python_testing_generator):
+def train(model, training_generator, val_java_generator, val_python_generator, test_java_generator, test_python_generator):
     loss_function = nn.NLLLoss()
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
     num_training_steps = NUMBER_OF_EPOCHS * len(training_generator)
@@ -161,38 +161,55 @@ def train(model, training_generator, validation_generator, java_testing_generato
 
         with torch.no_grad():
             model.eval()
-            print("Calculating commit evaluation loss...")
-            for ids, url, before_batch, after_batch, label_batch in validation_generator:
-                before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
-                outs = model(before_batch, after_batch)
-                outs = F.softmax(outs, dim=1)
-                loss = loss_function(outs, label_batch)
-                valid_losses.append(loss.item())
-
-            print("Commit evaluation loss: {}".format(np.sum(valid_losses)))
-
-            train_losses, valid_losses = [], []
-
-            print("Testing on Java...")
-            precision, recall, f1, auc, auc_pr = test_commit_classifier(model, java_testing_generator, device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC-ROC: {}".format(auc))
-            print("AUC-PR: {}".format(auc_pr))
-
-            print("-" * 32)
-
-            print("Testing on Python...")
-            precision, recall, f1, auc, auc_pr = test_commit_classifier(model, python_testing_generator, device)
+            print("Result on Java validation dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=val_java_generator,
+                                                           device=device)
 
             print("Precision: {}".format(precision))
             print("Recall: {}".format(recall))
             print("F1: {}".format(f1))
             print("AUC: {}".format(auc))
-            print("AUC-PR: {}".format(auc_pr))
             print("-" * 32)
+
+            # print("Result on Python validation dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=val_python_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
+            #
+            # if torch.cuda.device_count() > 1:
+            #     torch.save(model.module.state_dict(),
+            #                model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
+            # else:
+            #     torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
+            #
+            # print("Result on Java testing dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=test_java_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
+            #
+            # print("Result on Python testing dataset...")
+            # precision, recall, f1, auc = predict_test_data(model=model,
+            #                                                testing_generator=test_python_generator,
+            #                                                device=device)
+            #
+            # print("Precision: {}".format(precision))
+            # print("Recall: {}".format(recall))
+            # print("F1: {}".format(f1))
+            # print("AUC: {}".format(auc))
+            # print("-" * 32)
 
     # print("Loading best checkpoint...")
     # commit_classifier.load_state_dict(torch.load(commit_classifier_checkpoint_path))
@@ -200,52 +217,62 @@ def train(model, training_generator, validation_generator, java_testing_generato
 
 def do_train():
     print("Dataset name: {}".format(dataset_name))
-    url_train, url_val, url_test_java, url_test_python, label_train, label_val, label_test_java, label_test_python = get_data()
-    train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
+
+    url_data, label_data = utils.get_data(dataset_name)
+    train_ids, val_java_ids, val_python_ids, test_java_ids, test_python_ids = [], [], [], [], []
 
     index = 0
     id_to_url = {}
     id_to_label = {}
 
     print("Preparing data indices...")
-    for i, url in enumerate(url_train):
+    for i, url in enumerate(url_data['train']):
         train_ids.append(index)
-        label = label_train[i]
+        label = label_data['train'][i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i, url in enumerate(url_val):
-        val_ids.append(index)
-        label = label_val[i]
+    for i, url in enumerate(url_data['val_java']):
+        val_java_ids.append(index)
+        label = label_data['val_java'][i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i, url in enumerate(url_test_java):
+    for i, url in enumerate(url_data['val_python']):
+        val_python_ids.append(index)
+        label = label_data['val_python'][i]
+        id_to_url[index] = url
+        id_to_label[index] = label
+        index += 1
+
+    for i, url in enumerate(url_data['test_java']):
         test_java_ids.append(index)
-        label = label_test_java[i]
+        label = label_data['test_java'][i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
-    for i, url in enumerate(url_test_python):
+    for i, url in enumerate(url_data['test_python']):
         test_python_ids.append(index)
-        label = label_test_python[i]
+        label = label_data['test_python'][i]
         id_to_url[index] = url
         id_to_label[index] = label
         index += 1
 
     print("Preparing dataset...")
     training_set = PatchDatasetFCN(train_ids, id_to_label, id_to_url)
-    validation_set = PatchDatasetFCN(val_ids, id_to_label, id_to_url)
+    val_java_set = PatchDatasetFCN(val_java_ids, id_to_label, id_to_url)
+    val_python_set = PatchDatasetFCN(val_python_ids, id_to_label, id_to_url)
     test_java_set = PatchDatasetFCN(test_java_ids, id_to_label, id_to_url)
     test_python_set = PatchDatasetFCN(test_python_ids, id_to_label, id_to_url)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    validation_generator = DataLoader(validation_set, **VALIDATION_PARAMS)
-    testing_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
-    testing_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
+    val_java_generator = DataLoader(val_java_set, **VALIDATION_PARAMS)
+    val_python_generator = DataLoader(val_python_set, **VALIDATION_PARAMS)
+    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
+    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
     model = PatchClassifier()
 
@@ -256,8 +283,8 @@ def do_train():
 
     model.to(device)
 
-    train(model=model, training_generator=training_generator, validation_generator=validation_generator,
-          java_testing_generator=testing_java_generator, python_testing_generator=testing_python_generator)
+    train(model=model, training_generator=training_generator, val_java_generator=val_java_generator, val_python_generator=val_python_generator,
+          test_java_generator=test_java_generator, test_python_generator=test_python_generator)
 
 
 if __name__ == '__main__':
