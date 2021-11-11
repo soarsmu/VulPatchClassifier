@@ -124,7 +124,7 @@ def custom_collate(batch):
 
 
 def train(model, training_generator, val_java_generator, val_python_generator, test_java_generator, test_python_generator):
-    loss_function = nn.CrossEntropyLoss()
+    loss_function = nn.NLLLoss()
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
     num_training_steps = NUMBER_OF_EPOCHS * len(training_generator)
     lr_scheduler = get_scheduler(
@@ -143,7 +143,7 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
             before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(
                 device)
             outs = model(before_batch, after_batch)
-            outs = F.softmax(outs, dim=1)
+            outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
             model.zero_grad()

@@ -15,7 +15,7 @@ class PatchClassifierByHunk(nn.Module):
                             hidden_size=self.hidden_size,
                             batch_first=True,
                             bidirectional=True)
-        self.linear = nn.Linear(2 * self.hidden_size, self.hidden_size)
+        self.linear = nn.Linear(4 * self.hidden_size, self.hidden_size)
 
         self.relu = nn.ReLU()
 
