@@ -28,12 +28,16 @@ DATASET_REMOVED_FILE_FOLDER_PATH = os.path.join(directory, '../dataset_removed_f
 def get_file_to_manual_map():
     df = pd.read_csv(dataset_name)
     df = df[['commit_id', 'repo']]
-    for index, item in tqdm(enumerate(df.values.tolist())):
+    index_list = []
+    for index, item in enumerate(df.values.tolist()):
         source_file_path = DATASET_FILE_FOLDER_PATH + '/' + str(index) + '.txt'
         removed_file_file_path = DATASET_REMOVED_FILE_FOLDER_PATH + '/' + str(index) + '.txt'
-
         if not os.path.isfile(source_file_path) and not os.path.isfile(removed_file_file_path):
-            print("https://github.com/" + item[1] + '/commit/' + item[0])
+            index_list.append(index)
+
+    with open('missing_file_indices.txt', 'w') as writer:
+        for index in index_list:
+            writer.write(str(index) + '\n')
 
 
 get_file_to_manual_map()
