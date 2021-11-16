@@ -132,7 +132,6 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         num_training_steps=num_training_steps
     )
     train_losses = []
-    val_losses = []
 
     early_stopping = EarlyStopping(patience=EARLY_STOPPING_ROUND,
                                    verbose=True, path='model/patch_variant_1_best_model.sav')
@@ -164,12 +163,11 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.eval()
 
         print("Calculating validation loss...")
-        current_avg_val_loss = get_avg_validation_loss(model, val_generator, loss_function)
-        print("Average validation loss of this iteration: {}".format(current_avg_val_loss))
+        val_loss = get_avg_validation_loss(model, val_generator, loss_function)
+        print("Average validation loss of this iteration: {}".format(val_loss))
         print("-" * 32)
 
-        val_losses.append(current_avg_val_loss)
-        early_stopping(val_losses, model)
+        early_stopping(val_loss, model)
 
         if torch.cuda.device_count() > 1:
             torch.save(model.module.state_dict(), model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
