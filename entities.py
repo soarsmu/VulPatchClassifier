@@ -188,7 +188,7 @@ class VariantTwoDataset(Dataset):
     def __getitem__(self, index):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
-        file_path = os.path.join(directory, VARIANT_1_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, VARIANT_2_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
 
         with open(file_path, 'r') as reader:
             data = json.loads(reader.read())
