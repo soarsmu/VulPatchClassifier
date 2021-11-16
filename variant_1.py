@@ -82,7 +82,7 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
             embedding_batch, label_batch \
                 = embedding_batch.to(device), label_batch.to(device)
 
-            outs = model(embedding_batch)[0]
+            outs = model(embedding_batch)
             outs = F.softmax(outs, dim=1)
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
@@ -110,7 +110,7 @@ def get_avg_validation_loss(model, validation_generator, loss_function):
         for id_batch, url_batch, embedding_batch, label_batch in validation_generator:
             embedding_batch, label_batch \
                 = embedding_batch, label_batch.to(device)
-            outs = model(embedding_batch)[0]
+            outs = model(embedding_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
@@ -144,7 +144,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         for id_batch, url_batch, embedding_batch, label_batch in training_generator:
             embedding_batch, label_batch \
                 = embedding_batch.to(device), label_batch.to(device)
-            outs = model(embedding_batch)[0]
+            outs = model(embedding_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
