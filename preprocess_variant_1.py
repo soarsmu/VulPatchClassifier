@@ -124,4 +124,6 @@ def get_data():
 
     write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
 
-# get_data()
+
+if __name__ == '__main__':
+    get_data()
