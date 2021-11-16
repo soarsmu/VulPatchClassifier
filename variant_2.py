@@ -1,31 +1,31 @@
-from transformers import RobertaTokenizer, RobertaModel
 import torch
 from torch import nn as nn
 import os
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from torch import cuda
 from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantOneDataset
-import pandas as pd
-
+from entities import VariantTwoDataset
+from model import VariantTwoClassifier
 from pytorchtools import EarlyStopping
+import pandas as pd
+from tqdm import tqdm
 import utils
 
-# dataset_name = 'huawei_csv_subset_slicing_limited_10.csv'
-# dataset_name = 'huawei_sub_dataset.csv'
-dataset_name = 'ase_dataset_sept_19_2021.csv'
-
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_1_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_2_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
+EARLY_STOPPING_ROUND = 5
+
 TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
@@ -35,84 +35,58 @@ VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
 LEARNING_RATE = 1e-5
-EARLY_STOPPING_ROUND = 5
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
-random_seed = 109
-torch.manual_seed(random_seed)
-torch.cuda.manual_seed(random_seed)
-torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
+false_cases = []
 CODE_LENGTH = 512
 HIDDEN_DIM = 768
-HIDDEN_DIM_DROPOUT_PROB = 0.3
+
 NUMBER_OF_LABELS = 2
 
-model_path_prefix = model_folder_path + '/patch_classifier_variant_1_16112021_model_'
+
+model_path_prefix = model_folder_path + '/patch_variant_2_16112021_model_'
 
 
-class PatchClassifier(nn.Module):
-    def __init__(self):
-        super(PatchClassifier, self).__init__()
-        self.linear = nn.Linear(HIDDEN_DIM, HIDDEN_DIM)
-        self.relu = nn.ReLU()
-
-        self.drop_out = nn.Dropout(HIDDEN_DIM_DROPOUT_PROB)
-        self.out_proj = nn.Linear(HIDDEN_DIM, NUMBER_OF_LABELS)
-
-    def forward(self, embedding_batch):
-        x = embedding_batch
-        x = self.linear(x)
-        x = self.relu(x)
-        x = self.drop_out(x)
-        x = self.out_proj(x)
-
-        return x
-
-
-def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
-    print("Testing...")
+def predict_test_data(model, testing_generator, device):
     y_pred = []
     y_test = []
-    ids = []
     probs = []
-    model.eval()
+    test_ids = []
     with torch.no_grad():
-        for id_batch, url_batch, embedding_batch, label_batch in testing_generator:
-            embedding_batch, label_batch \
-                = embedding_batch.to(device), label_batch.to(device)
+        model.eval()
+        for ids, url, file_batch, label_batch in testing_generator:
+            file_batch, label_batch = file_batch.to(device), label_batch.to(device)
+            outs = model(file_batch)
 
-            outs = model(embedding_batch)
             outs = F.softmax(outs, dim=1)
+
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
             probs.extend(outs[:, 1].tolist())
-            ids.extend(id_batch.tolist())
+            test_ids.extend(label_batch.tolist())
+
         precision = metrics.precision_score(y_pred=y_pred, y_true=y_test)
         recall = metrics.recall_score(y_pred=y_pred, y_true=y_test)
         f1 = metrics.f1_score(y_pred=y_pred, y_true=y_test)
-
         try:
             auc = metrics.roc_auc_score(y_true=y_test, y_score=probs)
         except Exception:
             auc = 0
 
     print("Finish testing")
-    if not need_prob_and_id:
-        return precision, recall, f1, auc
-    else:
-        return precision, recall, f1, auc, ids, probs, y_pred, y_test
+    return precision, recall, f1, auc
 
 
 def get_avg_validation_loss(model, validation_generator, loss_function):
     validation_loss = 0
     with torch.no_grad():
-        for id_batch, url_batch, embedding_batch, label_batch in validation_generator:
-            embedding_batch, label_batch \
-                = embedding_batch, label_batch.to(device)
-            outs = model(embedding_batch)
+        for id_batch, url_batch, file_batch, label_batch in validation_generator:
+            file_batch, label_batch \
+                = file_batch, label_batch.to(device)
+            outs = model(file_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
@@ -122,11 +96,10 @@ def get_avg_validation_loss(model, validation_generator, loss_function):
     return avg_val_los
 
 
-def train(model, learning_rate, number_of_epochs, training_generator, val_generator,
-          test_java_generator, test_python_generator):
+def train(model, learning_rate, number_of_epochs, training_generator, val_generator, test_java_generator, test_python_generator):
     loss_function = nn.NLLLoss()
     optimizer = AdamW(model.parameters(), lr=learning_rate)
-    num_training_steps = number_of_epochs * len(training_generator)
+    num_training_steps = NUMBER_OF_EPOCHS * len(training_generator)
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optimizer,
@@ -136,16 +109,16 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
     train_losses = []
 
     early_stopping = EarlyStopping(patience=EARLY_STOPPING_ROUND,
-                                   verbose=True, path='model/patch_variant_1_best_model.sav')
+                                   verbose=True, path=BEST_MODEL_PATH)
 
     for epoch in range(number_of_epochs):
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, embedding_batch, label_batch in training_generator:
-            embedding_batch, label_batch \
-                = embedding_batch.to(device), label_batch.to(device)
-            outs = model(embedding_batch)
+        for id_batch, url_batch, file_batch, label_batch in training_generator:
+            file_batch, label_batch \
+                = file_batch.to(device), label_batch.to(device)
+            outs = model(file_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -238,18 +211,17 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-
-    training_set = VariantOneDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantOneDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantOneDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantOneDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantTwoDataset(train_ids, id_to_label, id_to_url)
+    val_set = VariantTwoDataset(val_ids, id_to_label, id_to_url)
+    test_java_set = VariantTwoDataset(test_java_ids, id_to_label, id_to_url)
+    test_python_set = VariantTwoDataset(test_python_ids, id_to_label, id_to_url)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    val_java_generator = DataLoader(val_set, **VALIDATION_PARAMS)
+    val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = PatchClassifier()
+    model = VariantTwoClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -262,7 +234,7 @@ def do_train():
           learning_rate=LEARNING_RATE,
           number_of_epochs=NUMBER_OF_EPOCHS,
           training_generator=training_generator,
-          val_generator= val_java_generator,
+          val_generator=val_generator,
           test_java_generator=test_java_generator,
           test_python_generator=test_python_generator)
 

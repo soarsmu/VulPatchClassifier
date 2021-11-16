@@ -114,3 +114,27 @@ class CnnClassifier(nn.Module):
         out = self.fc(self.dropout(x_fc))
 
         return out
+
+
+class VariantTwoClassifier(nn.Module):
+    def __init__(self):
+        super(VariantTwoClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+
+        self.linear = nn.Linear(5 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.relu = nn.ReLU()
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.HIDDEN_DIM, 2)
+
+    def forward(self, file_batch):
+        d1, d2, d3 = file_batch.shape
+        file_batch = torch.reshape(file_batch, (d1, d2*d3))
+
+        commit_embedding = self.linear(file_batch)
+        x = commit_embedding
+        x = self.relu(x)
+        x = self.drop_out(x)
+        out = self.out_proj(x)
+
+        return out
