@@ -78,7 +78,7 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
     probs = []
     model.eval()
     with torch.no_grad():
-        for id_batch, embedding_batch, label_batch in testing_generator:
+        for id_batch, url_batch, embedding_batch, label_batch in testing_generator:
             embedding_batch, label_batch \
                 = embedding_batch.to(device), label_batch.to(device)
 
@@ -107,7 +107,7 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
 def get_avg_validation_loss(model, validation_generator, loss_function):
     validation_loss = 0
     with torch.no_grad():
-        for id_batch, embedding_batch, label_batch in validation_generator:
+        for id_batch, url_batch, embedding_batch, label_batch in validation_generator:
             embedding_batch, label_batch \
                 = embedding_batch, label_batch.to(device)
             outs = model(embedding_batch)[0]
@@ -141,7 +141,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, embedding_batch, label_batch in training_generator:
+        for id_batch, url_batch, embedding_batch, label_batch in training_generator:
             embedding_batch, label_batch \
                 = embedding_batch.to(device), label_batch.to(device)
             outs = model(embedding_batch)[0]
