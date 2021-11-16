@@ -132,7 +132,39 @@ class VariantTwoClassifier(nn.Module):
         file_batch = torch.reshape(file_batch, (d1, d2*d3))
 
         commit_embedding = self.linear(file_batch)
+
         x = commit_embedding
+        x = self.relu(x)
+        x = self.drop_out(x)
+        out = self.out_proj(x)
+
+        return out
+
+
+class VariantSixClassifier(nn.Module):
+    def __init__(self):
+        super(VariantSixClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+
+        self.before_linear = nn.Linear(5 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.after_linear = nn.Linear(5 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.combine = nn.Linear(2 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+
+        self.relu = nn.ReLU()
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.HIDDEN_DIM, 2)
+
+    def forward(self, before_batch, after_batch):
+        d1, d2, d3 = before_batch.shape
+        before_batch = torch.reshape(before_batch, (d1, d2*d3))
+        after_batch = torch.reshape(after_batch, (d1, d2*d3))
+
+        before = self.before_linear(before_batch)
+        after = self.after_linear(after_batch)
+        combined = self.combine(torch.cat([before, after], axis=1))
+
+        x = combined
         x = self.relu(x)
         x = self.drop_out(x)
         out = self.out_proj(x)

@@ -8,7 +8,7 @@ from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import PatchDatasetFCN
+from entities import VariantSixDataset
 from model import PatchClassifier
 import pandas as pd
 from tqdm import tqdm
@@ -280,11 +280,11 @@ def do_train():
         index += 1
 
     print("Preparing dataset...")
-    training_set = PatchDatasetFCN(train_ids, id_to_label, id_to_url)
-    val_java_set = PatchDatasetFCN(val_java_ids, id_to_label, id_to_url)
-    val_python_set = PatchDatasetFCN(val_python_ids, id_to_label, id_to_url)
-    test_java_set = PatchDatasetFCN(test_java_ids, id_to_label, id_to_url)
-    test_python_set = PatchDatasetFCN(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantSixDataset(train_ids, id_to_label, id_to_url)
+    val_java_set = VariantSixDataset(val_java_ids, id_to_label, id_to_url)
+    val_python_set = VariantSixDataset(val_python_ids, id_to_label, id_to_url)
+    test_java_set = VariantSixDataset(test_java_ids, id_to_label, id_to_url)
+    test_python_set = VariantSixDataset(test_python_ids, id_to_label, id_to_url)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_java_generator = DataLoader(val_java_set, **VALIDATION_PARAMS)

@@ -7,7 +7,7 @@ import torch
 VARIANT_1_DIRECTORY = '../embeddings/variant_1'
 VARIANT_2_DIRECTORY = '../embeddings/variant_2'
 VARIANT_5_DIRECTORY = '../embeddings/variant_5'
-
+VARIANT_6_DIRECTORY = '../embeddings/variant_6'
 
 hunk_data_folder_name = 'hunk_data'
 file_data_folder_name = 'variant_file_data'
@@ -30,7 +30,7 @@ empty_embedding = code_bert(input_ids=input_ids, attention_mask=attention_mask).
 #
 #     return mean_
 
-class PatchDatasetFCN(Dataset):
+class VariantSixDataset(Dataset):
     def __init__(self, list_IDs, labels, id_to_url):
         self.max_data_length = 5
         self.list_IDs = list_IDs
@@ -43,7 +43,7 @@ class PatchDatasetFCN(Dataset):
     def __getitem__(self, index):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
-        file_path = os.path.join(directory, '../file_data/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, VARIANT_6_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         with open(file_path, 'r') as reader:
             data = json.loads(reader.read())
 
