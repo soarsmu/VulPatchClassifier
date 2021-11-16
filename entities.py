@@ -181,7 +181,7 @@ class VariantTwoDataset(Dataset):
         self.list_IDs = list_IDs
         self.labels = labels
         self.id_to_url = id_to_url
-
+        self.max_data_length = 5
     def __len__(self):
         return len(self.list_IDs)
 
@@ -194,6 +194,12 @@ class VariantTwoDataset(Dataset):
             data = json.loads(reader.read())
 
         file_embeddings = data['embedding']
+
+        if len(file_embeddings) > self.max_data_length:
+            file_embeddings = file_embeddings[:self.max_data_length]
+        while len(file_embeddings) < self.max_data_length:
+            file_embeddings.append(empty_embedding)
+
         file_embeddings = torch.FloatTensor(file_embeddings)
 
         y = self.labels[id]
