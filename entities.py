@@ -169,6 +169,7 @@ class VariantOneDataset(Dataset):
             data = json.loads(reader.read())
 
         embedding = data['embedding']
+        embedding = torch.FloatTensor(embedding)
 
         y = self.labels[id]
 
