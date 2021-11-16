@@ -15,8 +15,8 @@ import pandas as pd
 from tqdm import tqdm
 import utils
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -140,7 +140,6 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         print("Calculating validation loss...")
         val_loss = get_avg_validation_loss(model, val_generator, loss_function)
         print("Average validation loss of this iteration: {}".format(val_loss))
-        print("-" * 32)
 
         early_stopping(val_loss, model)
 
