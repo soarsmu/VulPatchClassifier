@@ -196,6 +196,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         print("AUC: {}".format(auc))
         print("-" * 32)
 
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
+
     return model
 
 
