@@ -21,8 +21,8 @@ def get_data(dataset_name):
     df = df[['commit_id', 'repo', 'partition', 'PL', 'label']]
     items = df.to_numpy().tolist()
 
-    url_train, url_val_java, url_val_python, url_test_java, url_test_python = [], [], [], [], []
-    label_train, label_val_java, label_val_python, label_test_java, label_test_python = [], [], [], [], []
+    url_train, url_val, url_test_java, url_test_python = [], [], [], []
+    label_train, label_val, label_test_java, label_test_python = [], [], [], []
 
     for item in tqdm(items):
         commit_id = item[0]
@@ -37,12 +37,8 @@ def get_data(dataset_name):
                 url_train.append(url)
                 label_train.append(label)
         elif partition == 'val':
-            if pl == 'java' and url not in url_val_java:
-                url_val_java.append(url)
-                label_val_java.append(label)
-            elif pl == 'python' and url not in url_val_python:
-                url_val_python.append(url)
-                label_val_python.append(label)
+            url_val.append(url)
+            label_val.append(label)
         elif partition == 'test':
             if pl == 'java' and url not in url_test_java:
                 url_test_java.append(url)
@@ -54,9 +50,9 @@ def get_data(dataset_name):
             Exception("Invalid partition: {}".format(partition))
 
     print("Finish reading dataset")
-    url_data = {'train': url_train, 'val_java': url_val_java, 'val_python': url_val_python,
+    url_data = {'train': url_train, 'val': url_val,
                 'test_java': url_test_java, 'test_python': url_test_python}
-    label_data = {'train': label_train, 'val_java': label_val_java, 'val_python': label_val_python,
+    label_data = {'train': label_train, 'val': label_val,
                 'test_java': label_test_java, 'test_python': label_test_python}
 
     data = {'url_data': url_data, 'label_data': label_data}
