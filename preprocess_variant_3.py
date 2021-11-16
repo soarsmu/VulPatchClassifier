@@ -8,14 +8,15 @@ from torch import cuda
 from torch import nn as nn
 import matplotlib.pyplot as plt
 
+
+EMBEDDING_DIRECTORY = '../embeddings/variant_3'
+
 directory = os.path.dirname(os.path.abspath(__file__))
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset_new.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset_new.csv'
 
-DATA_FILE_NAME = 'hunk_data_sub'
-
-CODE_LINE_LENGTH = 128
+CODE_LINE_LENGTH = 256
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -41,14 +42,14 @@ def get_code_version(diff, added_version):
             mark = '-'
         if line.startswith(mark):
             line = line[1:].strip()
-            if line.startswith(('//', '/**', '*', '*/', '#')):
+            if line.startswith(('//', '/**', '/*', '*', '*/', '#')):
                 continue
             code = code + line + '\n'
 
     return code
 
 
-def get_file_embeddings(code_list, tokenizer, code_bert):
+def get_hunk_embeddings(code_list, tokenizer, code_bert):
     # process all lines in one
     input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
@@ -60,28 +61,20 @@ def get_file_embeddings(code_list, tokenizer, code_bert):
     return embeddings
 
 
-def write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert):
-    removed_embeddings = get_file_embeddings(removed_code_list, tokenizer, code_bert)
-    added_embeddings = get_file_embeddings(added_code_list, tokenizer, code_bert)
-
-    url_to_removed_embeddings = {}
-    url_to_added_embeddings = {}
+def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
+    hunk_embeddings = get_hunk_embeddings(code_list, tokenizer, code_bert)
+    url_to_embeddings = {}
     for index, url in enumerate(url_list):
-        if url not in url_to_removed_embeddings:
-            url_to_removed_embeddings[url] = []
-            url_to_added_embeddings[url] = []
-        url_to_removed_embeddings[url].append(removed_embeddings[index])
-        url_to_added_embeddings[url].append(added_embeddings[index])
+        if url not in url_to_embeddings:
+            url_to_embeddings[url] = []
+        url_to_embeddings[url].append(hunk_embeddings[index])
 
     url_to_data = {}
-    for url, removed_embeddings in url_to_removed_embeddings.items():
-        data = {}
-        added_embeddings = url_to_added_embeddings[url]
-        data['before'] = removed_embeddings
-        data['after'] = added_embeddings
+    for url, embeddings in url_to_embeddings.items():
+        data = {'embeddings': embeddings}
         url_to_data[url] = data
     for url, data in url_to_data.items():
-        file_path = os.path.join(directory, '../' + DATA_FILE_NAME + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         json.dump(data, open(file_path, 'w'))
 
 
@@ -135,26 +128,24 @@ def get_data():
 
         url_to_hunk[url].extend(get_hunk_from_diff(diff))
 
-    removed_code_list = []
-    added_code_list = []
+    code_list = []
     url_list = []
     for url, diff_list in tqdm.tqdm(url_to_hunk.items()):
         for i, diff in enumerate(diff_list):
-            removed_code = tokenizer.sep_token + get_code_version(diff, False)
-            added_code = tokenizer.sep_token + get_code_version(diff, True)
+            removed_code = get_code_version(diff, False)
+            added_code = get_code_version(diff, True)
 
-            removed_code_list.append(removed_code)
-            added_code_list.append(added_code)
+            code = removed_code + tokenizer.sep_token + added_code
+
+            code_list.append(code)
             url_list.append(url)
 
         if len(url_list) >= 200:
-            write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
-
-            removed_code_list = []
-            added_code_list = []
+            write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
+            code_list = []
             url_list = []
 
-    write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
+    write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
 
 
 def get_token_count(code, tokenizer):
