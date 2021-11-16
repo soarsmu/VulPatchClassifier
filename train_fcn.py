@@ -189,7 +189,6 @@ def train(model, training_generator, val_java_generator, val_python_generator, t
                                                            testing_generator=val_python_generator,
                                                            device=device)
 
-
             if auc > best_auc_val_python:
                 best_auc_val_python = auc
                 if torch.cuda.device_count() > 1:

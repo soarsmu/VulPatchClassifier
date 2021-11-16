@@ -43,7 +43,7 @@ NUMBER_OF_LABELS = 2
 
 
 model_path_prefix = model_folder_path + '/patch_classifier_file_to_commit_04112021_model_'
-
+best_java_model_path_prefix = model_folder_path + '/patch_classifier_file_to_commit_04112021_model_'
 
 def get_data():
     print("Reading dataset...")
@@ -165,7 +165,7 @@ def custom_collate(batch):
 
 
 def train(model, training_generator, validation_generator, java_testing_generator, python_testing_generator):
-    loss_function = nn.CrossEntropyLoss()
+    loss_function = nn.NLLLoss()
     optimizer = AdamW(model.parameters(), lr=LEARNING_RATE)
     num_training_steps = NUMBER_OF_EPOCHS * len(training_generator)
     lr_scheduler = get_scheduler(
@@ -183,7 +183,7 @@ def train(model, training_generator, validation_generator, java_testing_generato
         for ids, url, before_batch, after_batch, label_batch in training_generator:
             before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
             outs = model(before_batch, after_batch)
-            outs = F.softmax(outs, dim=1)
+            outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
             model.zero_grad()
