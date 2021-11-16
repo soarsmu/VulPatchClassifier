@@ -9,6 +9,8 @@ from torch import nn as nn
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
+EMBEDDING_DIRECTORY = '../embeddings/variant_1'
+
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 
@@ -72,7 +74,7 @@ def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
         data['embedding'] = embedding
         url_to_data[url] = data
     for url, data in url_to_data.items():
-        file_path = os.path.join(directory, '../embeddings/variant_1/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         json.dump(data, open(file_path, 'w'))
 
 
