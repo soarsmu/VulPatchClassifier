@@ -1,4 +1,3 @@
-from transformers import RobertaTokenizer, RobertaModel
 import torch
 from torch import nn as nn
 import os
@@ -9,21 +8,21 @@ from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantOneDataset
+from entities import VariantFiveDataset
 import pandas as pd
 
 from pytorchtools import EarlyStopping
 import utils
 
 # dataset_name = 'huawei_csv_subset_slicing_limited_10.csv'
-# dataset_name = 'huawei_sub_dataset.csv'
-dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_1_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_5_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 TRAIN_BATCH_SIZE = 128
@@ -50,20 +49,21 @@ HIDDEN_DIM = 768
 HIDDEN_DIM_DROPOUT_PROB = 0.3
 NUMBER_OF_LABELS = 2
 
-model_path_prefix = model_folder_path + '/patch_classifier_variant_1_16112021_model_'
+model_path_prefix = model_folder_path + '/patch_classifier_variant_5_16112021_model_'
 
 
 class PatchClassifier(nn.Module):
     def __init__(self):
         super(PatchClassifier, self).__init__()
-        self.linear = nn.Linear(HIDDEN_DIM, HIDDEN_DIM)
+        self.linear = nn.Linear(2 * HIDDEN_DIM, HIDDEN_DIM)
         self.relu = nn.ReLU()
 
         self.drop_out = nn.Dropout(HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(HIDDEN_DIM, NUMBER_OF_LABELS)
 
-    def forward(self, embedding_batch):
-        x = embedding_batch
+    def forward(self, before_batch, after_batch):
+        combined = torch.cat([before_batch, after_batch], dim=1)
+        x = combined
         x = self.linear(x)
         x = self.relu(x)
         x = self.drop_out(x)
@@ -80,11 +80,11 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
     probs = []
     model.eval()
     with torch.no_grad():
-        for id_batch, url_batch, embedding_batch, label_batch in testing_generator:
-            embedding_batch, label_batch \
-                = embedding_batch.to(device), label_batch.to(device)
+        for id_batch, url_batch, before_batch, after_batch in testing_generator:
+            before_batch, after_batch, label_batch \
+                = before_batch.to(device), after_batch.to(device), label_batch.to(device)
 
-            outs = model(embedding_batch)
+            outs = model(before_batch, after_batch)
             outs = F.softmax(outs, dim=1)
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
@@ -109,10 +109,10 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
 def get_avg_validation_loss(model, validation_generator, loss_function):
     validation_loss = 0
     with torch.no_grad():
-        for id_batch, url_batch, embedding_batch, label_batch in validation_generator:
-            embedding_batch, label_batch \
-                = embedding_batch, label_batch.to(device)
-            outs = model(embedding_batch)
+        for id_batch, url_batch, before_batch, after_batch, label_batch in validation_generator:
+            before_batch, after_batch, label_batch \
+                = before_batch.to(device), after_batch.to(device), label_batch.to(device)
+            outs = model(before_batch, after_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
@@ -142,10 +142,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, embedding_batch, label_batch in training_generator:
-            embedding_batch, label_batch \
-                = embedding_batch.to(device), label_batch.to(device)
-            outs = model(embedding_batch)
+        for id_batch, url_batch, before_batch, after_batch, label_batch in training_generator:
+            before_batch, after_batch, label_batch \
+                = before_batch.to(device), after_batch.to(device), label_batch.to(device)
+            outs = model(before_batch, after_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -238,11 +238,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-
-    training_set = VariantOneDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantOneDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantOneDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantOneDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantFiveDataset(train_ids, id_to_label, id_to_url)
+    val_set = VariantFiveDataset(val_ids, id_to_label, id_to_url)
+    test_java_set = VariantFiveDataset(test_java_ids, id_to_label, id_to_url)
+    test_python_set = VariantFiveDataset(test_python_ids, id_to_label, id_to_url)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_java_generator = DataLoader(val_set, **VALIDATION_PARAMS)
