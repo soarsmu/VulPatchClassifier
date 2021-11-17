@@ -317,3 +317,25 @@ class VariantSevenClassifier(nn.Module):
         out = self.fc(self.dropout(x_fc))
 
         return out
+
+
+class VariantOneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantOneClassifier, self).__init__()
+        self.HIDDEN_DIM = 678
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, embedding_batch):
+        x = embedding_batch
+        x = self.linear(x)
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+
+        return x
