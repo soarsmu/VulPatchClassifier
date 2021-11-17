@@ -143,7 +143,7 @@ def get_data():
             code_list.append(code)
             url_list.append(url)
 
-        if len(url_list) >= 50:
+        if len(url_list) >= 1:
             write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
             code_list = []
             url_list = []
