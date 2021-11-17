@@ -6,6 +6,7 @@ import torch
 
 VARIANT_1_DIRECTORY = '../embeddings/variant_1'
 VARIANT_2_DIRECTORY = '../embeddings/variant_2'
+VARIANT_3_DIRECTORY = '../embeddings/variant_3'
 VARIANT_5_DIRECTORY = '../embeddings/variant_5'
 VARIANT_6_DIRECTORY = '../embeddings/variant_6'
 
@@ -237,3 +238,27 @@ class VariantFiveDataset(Dataset):
         return int(id), url, before_embedding, after_embedding, y
 
 
+class VariantThreeDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.max_data_length = 5
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+        file_path = os.path.join(directory, VARIANT_3_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+
+        with open(file_path, 'r') as reader:
+            data = json.loads(reader.read())
+
+        hunk_embeddings = data['embeddings']
+
+        hunk_embeddings = torch.FloatTensor(hunk_embeddings)
+
+        y = self.labels[id]
+
+        return int(id), url, hunk_embeddings, y
