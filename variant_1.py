@@ -70,7 +70,7 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
             probs.extend(outs[:, 1].tolist())
-            urls.extend(url_batch.tolist())
+            urls.extend(list(url_batch))
         precision = metrics.precision_score(y_pred=y_pred, y_true=y_test)
         recall = metrics.recall_score(y_pred=y_pred, y_true=y_test)
         f1 = metrics.f1_score(y_pred=y_pred, y_true=y_test)
