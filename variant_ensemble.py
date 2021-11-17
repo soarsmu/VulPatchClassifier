@@ -162,4 +162,4 @@ def get_variant_two_result():
 
     write_prob_to_file("variant_2_prob_python.txt", urls, probs)
 
-
+get_variant_two_result()
