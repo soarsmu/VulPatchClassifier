@@ -3,7 +3,7 @@ from torch import nn as nn
 import os
 from torch.utils.data import Dataset, DataLoader
 from torch import cuda
-
+import pandas as pd
 from entities import VariantOneDataset, VariantTwoDataset, VariantFiveDataset, VariantSixDataset
 from model import VariantOneClassifier, VariantTwoClassifier, VariantFiveClassifier, VariantSixClassifier
 import utils
@@ -11,6 +11,8 @@ import variant_1
 import variant_2
 import variant_5
 import variant_6
+from sklearn import metrics
+from statistics import mean
 import csv
 # dataset_name = 'huawei_csv_subset_slicing_limited_10.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
@@ -291,4 +293,47 @@ def get_variant_six_result():
 
     write_prob_to_file("variant_6_prob_python.txt", urls, probs)
 
-get_variant_six_result()
+
+def read_pred_prob(file_path):
+    df = pd.read_csv(file_path, header=None)
+    url_to_prob = {}
+
+    for url, prob in df.values.tolist():
+        url_to_prob[url] = prob
+
+    return url_to_prob
+
+
+def get_auc_max_ensemble():
+    print("Reading result...")
+    variant_1_result = read_pred_prob('variant_1_prob_java.txt')
+    variant_2_result = read_pred_prob('variant_2_prob_java.txt')
+    variant_5_result = read_pred_prob('variant_5_prob_java.txt')
+    variant_6_result = read_pred_prob('variant_6_prob_java.txt')
+
+    print("Finish reading result")
+
+    url_to_max_prob = {}
+
+    for url, prob_1 in variant_1_result.items():
+        prob_2 = variant_2_result[url]
+        prob_5 = variant_5_result[url]
+        prob_6 = variant_6_result[url]
+        url_to_max_prob[url] = mean([prob_1, prob_2, prob_5, prob_6])
+
+    url_data, label_data = utils.get_data(dataset_name)
+    url_test = url_data['test_java']
+    label_test = label_data['test_java']
+
+    y_score = []
+    y_true = []
+    for i, url in enumerate(url_test):
+        y_true.append(label_test[i])
+        y_score.append(url_to_max_prob[url])
+
+    auc = metrics.roc_auc_score(y_true=y_true, y_score=y_score)
+
+    print("AUC: {}".format(auc))
+
+
+get_auc_max_ensemble()

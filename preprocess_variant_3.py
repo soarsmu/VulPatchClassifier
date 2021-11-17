@@ -82,9 +82,13 @@ def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
 
 
 def hunk_empty(hunk):
+    if hunk.strip() == '':
+        return True
+
     for line in hunk.split('\n'):
         if line[1:].strip() != '':
             return False
+
     return True
 
 
@@ -149,7 +153,7 @@ def get_data():
             code_list.append(code)
             url_list.append(url)
 
-        if len(url_list) >= 50:
+        if len(url_list) >= 100:
             write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
             code_list = []
             url_list = []
