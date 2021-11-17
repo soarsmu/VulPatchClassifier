@@ -133,7 +133,7 @@ def get_data():
 
     code_list = []
     url_list = []
-    for url, diff_list in tqdm.tqdm(url_to_hunk.items()):
+    for url, diff_list in url_to_hunk.items():
         file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         if os.path.isfile(file_path):
             continue
