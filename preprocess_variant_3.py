@@ -82,7 +82,10 @@ def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
 
 
 def hunk_empty(hunk):
-    return hunk.strip() == ''
+    for line in hunk.split('\n'):
+        if line[1:].strip() != '':
+            return False
+    return True
 
 
 def get_hunk_from_diff(diff):
