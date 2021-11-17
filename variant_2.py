@@ -50,14 +50,14 @@ NUMBER_OF_LABELS = 2
 model_path_prefix = model_folder_path + '/patch_variant_2_16112021_model_'
 
 
-def predict_test_data(model, testing_generator, device):
+def predict_test_data(model, testing_generator, device, need_prob=False):
     y_pred = []
     y_test = []
     probs = []
-    test_ids = []
+    urls = []
     with torch.no_grad():
         model.eval()
-        for ids, url, file_batch, label_batch in testing_generator:
+        for ids, url_batch, file_batch, label_batch in testing_generator:
             file_batch, label_batch = file_batch.to(device), label_batch.to(device)
             outs = model(file_batch)
 
@@ -66,7 +66,7 @@ def predict_test_data(model, testing_generator, device):
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
             probs.extend(outs[:, 1].tolist())
-            test_ids.extend(label_batch.tolist())
+            urls.extend(list(url_batch))
 
         precision = metrics.precision_score(y_pred=y_pred, y_true=y_test)
         recall = metrics.recall_score(y_pred=y_pred, y_true=y_test)
@@ -77,7 +77,10 @@ def predict_test_data(model, testing_generator, device):
             auc = 0
 
     print("Finish testing")
-    return precision, recall, f1, auc
+    if not need_prob:
+        return precision, recall, f1, auc
+    else:
+        return precision, recall, f1, auc, urls, probs
 
 
 def get_avg_validation_loss(model, validation_generator, loss_function):
