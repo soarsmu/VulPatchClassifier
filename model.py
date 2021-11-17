@@ -338,3 +338,26 @@ class VariantOneClassifier(nn.Module):
         x = self.out_proj(x)
 
         return x
+
+
+class VariantFiveClassifier(nn.Module):
+    def __init__(self):
+        super(VariantFiveClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+        self.linear = nn.Linear(2 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, before_batch, after_batch):
+        combined = torch.cat([before_batch, after_batch], dim=1)
+        x = combined
+        x = self.linear(x)
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+
+        return x

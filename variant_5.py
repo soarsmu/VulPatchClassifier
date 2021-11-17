@@ -9,6 +9,7 @@ import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
 from entities import VariantFiveDataset
+from model import VariantFiveClassifier
 import pandas as pd
 
 from pytorchtools import EarlyStopping
@@ -52,31 +53,11 @@ NUMBER_OF_LABELS = 2
 model_path_prefix = model_folder_path + '/patch_classifier_variant_5_16112021_model_'
 
 
-class PatchClassifier(nn.Module):
-    def __init__(self):
-        super(PatchClassifier, self).__init__()
-        self.linear = nn.Linear(2 * HIDDEN_DIM, HIDDEN_DIM)
-        self.relu = nn.ReLU()
-
-        self.drop_out = nn.Dropout(HIDDEN_DIM_DROPOUT_PROB)
-        self.out_proj = nn.Linear(HIDDEN_DIM, NUMBER_OF_LABELS)
-
-    def forward(self, before_batch, after_batch):
-        combined = torch.cat([before_batch, after_batch], dim=1)
-        x = combined
-        x = self.linear(x)
-        x = self.relu(x)
-        x = self.drop_out(x)
-        x = self.out_proj(x)
-
-        return x
-
-
-def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
+def predict_test_data(model, testing_generator, device, need_prob=False):
     print("Testing...")
     y_pred = []
     y_test = []
-    ids = []
+    urls = []
     probs = []
     model.eval()
     with torch.no_grad():
@@ -89,7 +70,8 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
             probs.extend(outs[:, 1].tolist())
-            ids.extend(id_batch.tolist())
+            urls.extend(list(url_batch))
+
         precision = metrics.precision_score(y_pred=y_pred, y_true=y_test)
         recall = metrics.recall_score(y_pred=y_pred, y_true=y_test)
         f1 = metrics.f1_score(y_pred=y_pred, y_true=y_test)
@@ -100,10 +82,10 @@ def predict_test_data(model, testing_generator, device, need_prob_and_id=False):
             auc = 0
 
     print("Finish testing")
-    if not need_prob_and_id:
+    if not need_prob:
         return precision, recall, f1, auc
     else:
-        return precision, recall, f1, auc, ids, probs, y_pred, y_test
+        return precision, recall, f1, auc, urls, probs
 
 
 def get_avg_validation_loss(model, validation_generator, loss_function):
@@ -248,7 +230,7 @@ def do_train():
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = PatchClassifier()
+    model = VariantFiveClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
