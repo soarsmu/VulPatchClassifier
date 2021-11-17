@@ -176,7 +176,7 @@ class VariantThreeClassifier(nn.Module):
     """An 1D Convulational Neural Network for Sentence Classification."""
 
     def __init__(self,
-                 embed_dim=256,
+                 embed_dim=768,
                  filter_sizes=[3, 4, 5],
                  num_filters=[100, 100, 100],
                  num_classes=2,
@@ -235,7 +235,7 @@ class VariantSevenClassifier(nn.Module):
     """An 1D Convulational Neural Network for Sentence Classification."""
 
     def __init__(self,
-                 embed_dim=128,
+                 embed_dim=768,
                  filter_sizes=[2, 3, 4],
                  num_filters=[100, 100, 100],
                  num_classes=2,
