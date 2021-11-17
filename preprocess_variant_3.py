@@ -57,9 +57,9 @@ def get_hunk_embeddings(code_list, tokenizer, code_bert):
         input_ids = input_ids.to(device)
         attention_mask = attention_mask.to(device)
         embeddings = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[:, 0, :]
-        input_ids.detach()
-        attention_mask.detach()
-        embeddings.detach()
+        input_ids.to('cpu')
+        attention_mask.to('cpu')
+        embeddings.to('cpu')
     embeddings = embeddings.tolist()
     return embeddings
 
@@ -143,7 +143,7 @@ def get_data():
             code_list.append(code)
             url_list.append(url)
 
-        if len(url_list) >= 1:
+        if len(url_list) >= 50:
             write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
             code_list = []
             url_list = []
