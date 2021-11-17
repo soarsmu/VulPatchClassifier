@@ -3,10 +3,6 @@ from torch import nn as nn
 import numpy as np
 from torch.nn import functional as F
 
-VARIANT_ONE_HIDDEN_DIM = 678
-VARIANT_ONE_HIDDEN_DIM_DROPOUT_PROB = 0.3
-VARIANT_ONE_NUMBER_OF_LABELS = 2
-
 class PatchClassifier(nn.Module):
     def __init__(self):
         super(PatchClassifier, self).__init__()
@@ -325,12 +321,14 @@ class VariantSevenClassifier(nn.Module):
 class VariantOneClassifier(nn.Module):
     def __init__(self):
         super(VariantOneClassifier, self).__init__()
-
-        self.linear = nn.Linear(VARIANT_ONE_HIDDEN_DIM, VARIANT_ONE_HIDDEN_DIM)
+        self.HIDDEN_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
         self.relu = nn.ReLU()
 
-        self.drop_out = nn.Dropout(VARIANT_ONE_HIDDEN_DIM_DROPOUT_PROB)
-        self.out_proj = nn.Linear(VARIANT_ONE_HIDDEN_DIM, VARIANT_ONE_NUMBER_OF_LABELS)
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
 
     def forward(self, embedding_batch):
         x = embedding_batch
