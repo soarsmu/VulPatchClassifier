@@ -55,7 +55,7 @@ def get_variant_one_result():
 
     model.to(device)
 
-    model.module.load_state_dict(torch.load(VARIANT_ONE_MODEL_PATH))
+    model.load_state_dict(torch.load(VARIANT_ONE_MODEL_PATH))
 
     url_data, label_data = utils.get_data(dataset_name)
 
