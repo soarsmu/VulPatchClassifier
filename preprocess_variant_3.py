@@ -106,10 +106,10 @@ def get_hunk_from_diff(diff):
 def get_data():
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
     code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
-    # if torch.cuda.device_count() > 1:
-    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-    #     code_bert = nn.DataParallel(code_bert)
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        code_bert = nn.DataParallel(code_bert)
 
     code_bert.to(device)
     code_bert.eval()
@@ -154,4 +154,5 @@ def get_data():
     write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
 
 
-get_data()
+if __name__ == '__main__':
+    get_data()
