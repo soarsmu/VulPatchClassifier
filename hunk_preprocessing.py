@@ -139,6 +139,10 @@ def get_data():
     added_code_list = []
     url_list = []
     for url, diff_list in tqdm.tqdm(url_to_hunk.items()):
+        file_path = os.path.join(directory, '../' + DATA_FILE_NAME + '/' + url.replace('/', '_') + '.txt')
+        if os.path.isfile(file_path):
+            continue
+
         for i, diff in enumerate(diff_list):
             removed_code = tokenizer.sep_token + get_code_version(diff, False)
             added_code = tokenizer.sep_token + get_code_version(diff, True)
