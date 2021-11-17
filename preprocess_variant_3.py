@@ -82,7 +82,7 @@ def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
 
 
 def hunk_empty(hunk):
-    return hunk == ''
+    return hunk.strip() == ''
 
 
 def get_hunk_from_diff(diff):
@@ -152,5 +152,6 @@ def get_data():
             url_list = []
 
     write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
+
 
 get_data()
