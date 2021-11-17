@@ -106,10 +106,10 @@ def get_hunk_from_diff(diff):
 def get_data():
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
     code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-        code_bert = nn.DataParallel(code_bert)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+    #     code_bert = nn.DataParallel(code_bert)
 
     code_bert.to(device)
     code_bert.eval()
@@ -153,48 +153,4 @@ def get_data():
 
     write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
 
-
-def get_token_count(code, tokenizer):
-    inputs = tokenizer(code, return_tensors="pt")
-    token_count = inputs.data['input_ids'].shape[1]
-
-    return token_count
-
-
-def get_hunk_token_count_distribution():
-    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
-    code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-        code_bert = nn.DataParallel(code_bert)
-
-    code_bert.to(device)
-    code_bert.eval()
-    print("Reading dataset...")
-    df = pd.read_csv(dataset_name)
-    df = df[df.label == 1]
-    df = df[['diff']]
-
-    hunk_list = []
-    for item in df.values.tolist():
-        diff = item[0]
-        hunk_list.extend(get_hunk_from_diff(diff))
-
-    added_token_count = []
-    removed_token_count = []
-    for hunk in tqdm.tqdm(hunk_list):
-        removed_code = tokenizer.sep_token + get_code_version(hunk, False)
-        added_code = tokenizer.sep_token + get_code_version(hunk, True)
-        added_token_count.append(get_token_count(added_code, tokenizer))
-        removed_token_count.append(get_token_count(removed_code, tokenizer))
-
-    plt.boxplot([added_token_count, removed_token_count],
-                labels=['Added_token_count', "Removed_token_count"], showfliers=True)
-    plt.title("Distribution in token count by hunk")
-    plt.ylabel("No. Token count")
-    plt.show()
-
-
-if __name__ == '__main__':
-    get_data()
+get_data()
