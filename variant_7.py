@@ -256,10 +256,10 @@ def do_train():
     test_java_set = VariantSevenDataset(test_java_ids, id_to_label, id_to_url)
     test_python_set = VariantSevenDataset(test_python_ids, id_to_label, id_to_url)
 
-    training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
-    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
-    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
+    training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
+    val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
+    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
+    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
     model = VariantSevenClassifier()
 
