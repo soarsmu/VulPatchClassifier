@@ -10,6 +10,7 @@ VARIANT_3_DIRECTORY = '../embeddings/variant_3'
 VARIANT_5_DIRECTORY = '../embeddings/variant_5'
 VARIANT_6_DIRECTORY = '../embeddings/variant_6'
 VARIANT_7_DIRECTORY = '../embeddings/variant_7'
+VARIANT_8_DIRECTORY = '../embeddings/variant_8'
 
 hunk_data_folder_name = 'hunk_data'
 file_data_folder_name = 'variant_file_data'
@@ -275,6 +276,31 @@ class VariantSevenDataset(Dataset):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
         file_path = os.path.join(directory, VARIANT_7_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+
+        with open(file_path, 'r') as reader:
+            data = json.loads(reader.read())
+
+        before = data['before']
+        after = data['after']
+
+        y = self.labels[id]
+
+        return int(id), url, before, after, y
+
+
+class VariantEightDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+        file_path = os.path.join(directory, VARIANT_8_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
 
         with open(file_path, 'r') as reader:
             data = json.loads(reader.read())

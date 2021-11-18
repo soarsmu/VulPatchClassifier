@@ -8,8 +8,8 @@ from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantSevenDataset
-from model import VariantSevenClassifier
+from entities import VariantEightDataset
+from model import VariantEightClassifier
 from pytorchtools import EarlyStopping
 import pandas as pd
 from tqdm import tqdm
@@ -21,7 +21,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_8_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
@@ -47,7 +47,7 @@ HIDDEN_DIM = 768
 NUMBER_OF_LABELS = 2
 
 
-model_path_prefix = model_folder_path + '/patch_variant_7_17112021_model_'
+model_path_prefix = model_folder_path + '/patch_variant_8_18112021_model_'
 
 
 def find_max_length(arr):
@@ -251,17 +251,17 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-    training_set = VariantSevenDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantSevenDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantSevenDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantSevenDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantEightDataset(train_ids, id_to_label, id_to_url)
+    val_set = VariantEightDataset(val_ids, id_to_label, id_to_url)
+    test_java_set = VariantEightDataset(test_java_ids, id_to_label, id_to_url)
+    test_python_set = VariantEightDataset(test_python_ids, id_to_label, id_to_url)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
-    model = VariantSevenClassifier()
+    model = VariantEightClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
