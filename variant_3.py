@@ -114,7 +114,7 @@ def get_avg_validation_loss(model, validation_generator, loss_function):
     with torch.no_grad():
         for id_batch, url_batch, hunk_batch, label_batch in validation_generator:
             hunk_batch, label_batch \
-                = hunk_batch.to(device), hunk_batch.to(device)
+                = hunk_batch.to(device), label_batch.to(device)
             outs = model(hunk_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
