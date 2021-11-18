@@ -13,8 +13,8 @@ EMBEDDING_DIRECTORY = '../embeddings/variant_8'
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset_new.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset_new.csv'
 
 CODE_LINE_LENGTH = 64
 
@@ -178,7 +178,7 @@ def get_data():
         removed_code_list.extend(new_removed_code_list)
         added_code_list.extend(new_added_code_list)
 
-        if len(removed_code_list) >= 100:
+        if len(removed_code_list) >= 500 or len(added_code_list) >= 500:
             removed_embeddings = get_line_embeddings(removed_code_list, tokenizer, code_bert)
             added_embeddings = get_line_embeddings(added_code_list, tokenizer, code_bert)
 
