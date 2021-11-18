@@ -57,6 +57,7 @@ def find_max_length(arr):
             max_len = len(elem)
     return max_len
 
+
 def custom_collate(batch):
     id, url, embeddings, label = zip(*batch)
 
@@ -118,6 +119,8 @@ def get_avg_validation_loss(model, validation_generator, loss_function):
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
+
+
 
     avg_val_los = validation_loss / len(validation_generator)
 

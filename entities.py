@@ -257,9 +257,6 @@ class VariantThreeDataset(Dataset):
             data = json.loads(reader.read())
 
         hunk_embeddings = data['embeddings']
-
-        hunk_embeddings = torch.FloatTensor(hunk_embeddings)
-
         y = self.labels[id]
 
         return int(id), url, hunk_embeddings, y
