@@ -227,7 +227,7 @@ class VariantThreeClassifier(nn.Module):
 
         # Compute logits. Output shape: (b, n_classes)
         out = self.fc(self.dropout(x_fc))
-        return F.log_softmax(out, -1)
+        return out
 
 
 class VariantSevenClassifier(nn.Module):
