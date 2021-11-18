@@ -15,8 +15,8 @@ import pandas as pd
 from tqdm import tqdm
 import utils
 
-dataset_name = 'ase_dataset_sept_19_2021.csv'
-# dataset_name = 'huawei_sub_dataset.csv'
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -47,7 +47,7 @@ HIDDEN_DIM = 768
 NUMBER_OF_LABELS = 2
 
 
-model_path_prefix = model_folder_path + '/patch_variant_3_17112021_model_'
+model_path_prefix = model_folder_path + '/patch_variant_3_18112021_model_'
 
 
 def find_max_length(arr):
@@ -243,10 +243,10 @@ def do_train():
     test_java_set = VariantThreeDataset(test_java_ids, id_to_label, id_to_url)
     test_python_set = VariantThreeDataset(test_python_ids, id_to_label, id_to_url)
 
-    training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
-    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
-    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
+    training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
+    val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
+    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
+    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
     model = VariantThreeClassifier()
 
