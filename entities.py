@@ -23,7 +23,6 @@ inputs = tokenizer([empty_code], padding=True, max_length=512, truncation=True, 
 input_ids, attention_mask = inputs.data['input_ids'], inputs.data['attention_mask']
 empty_embedding = code_bert(input_ids=input_ids, attention_mask=attention_mask).last_hidden_state[0, 0, :].tolist()
 
-
 # def get_average_value(embeddings):
 #     embeddings = torch.FloatTensor(embeddings)
 #     sum_ = torch.sum(embeddings, dim=0)
@@ -307,6 +306,12 @@ class VariantEightDataset(Dataset):
 
         before = data['before']
         after = data['after']
+
+        if len(before) == 0:
+            before = [empty_embedding]
+
+        if len(after) == 0:
+            after = [empty_embedding]
 
         y = self.labels[id]
 

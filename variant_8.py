@@ -63,28 +63,26 @@ def custom_collate(batch):
 
     # before: list embeddings of files
     max_before = find_max_length(before)
-    # if max_before < 5:
-    #     max_before = 5
+    if max_before < 5:
+        max_before = 5
     before_features = torch.zeros((len(batch), max_before, 768))
 
     max_after = find_max_length(after)
-    # if max_after < 5:
-    #     max_after = 5
-
+    if max_after < 5:
+        max_after = 5
     after_features = torch.zeros((len(batch), max_after, 768))
+
     for i in range(len(batch)):
         before = torch.FloatTensor(batch[i][2]).to(device)
         j, k = before.size(0), before.size(1)
         before_features[i] = torch.cat(
-            [before,
-             torch.zeros((max_before - j, k), device=device)])
+            [before, torch.zeros((max_before - j, k), device=device)])
 
     for i in range(len(batch)):
         after = torch.FloatTensor(batch[i][3]).to(device)
         j, k = after.size(0), after.size(1)
         after_features[i] = torch.cat(
-            [after,
-             torch.zeros((max_after - j, k), device=device)])
+            [after, torch.zeros((max_after - j, k), device=device)])
 
     label = torch.tensor(label).to(device)
 
