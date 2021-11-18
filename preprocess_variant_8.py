@@ -62,6 +62,9 @@ def get_embeddings(code_list, start, length, tokenizer, codebert):
 
 
 def get_line_embeddings(code_list, tokenizer, code_bert):
+    if len(code_list) == 0:
+        return []
+
     embeddings = []
     index = 0
     length_limit = 100
