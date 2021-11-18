@@ -26,9 +26,9 @@ BEST_MODEL_PATH = 'model/patch_variant_8_best_model.sav'
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 128
-VALIDATION_BATCH_SIZE = 128
-TEST_BATCH_SIZE = 128
+TRAIN_BATCH_SIZE = 32
+VALIDATION_BATCH_SIZE = 32
+TEST_BATCH_SIZE = 32
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
 VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
@@ -96,7 +96,7 @@ def predict_test_data(model, testing_generator, device):
     test_ids = []
     with torch.no_grad():
         model.eval()
-        for ids, url, before_batch, after_batch, label_batch in testing_generator:
+        for ids, url, before_batch, after_batch, label_batch in tqdm(testing_generator):
             before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
             outs = model(before_batch, after_batch)
 
