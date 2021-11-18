@@ -95,21 +95,31 @@ def get_line_from_code(sep_token, code):
 
 
 def write_embeddings_to_files(removed_embeddings, added_embeddings, removed_url_list, added_url_list):
+    url_set = set()
     url_to_removed_embeddings = {}
     for index, url in enumerate(removed_url_list):
         if url not in url_to_removed_embeddings:
+            url_set.add(url)
             url_to_removed_embeddings[url] = []
         url_to_removed_embeddings[url].append(removed_embeddings[index])
 
     url_to_added_embeddings = {}
     for index, url in enumerate(added_url_list):
         if url not in url_to_added_embeddings:
+            url_set.add(url)
             url_to_added_embeddings[url] = []
         url_to_added_embeddings[url].append(added_embeddings[index])
 
     url_to_data = {}
-    for url, embeddings in url_to_removed_embeddings.items():
-        data = {'before': embeddings, 'after': url_to_added_embeddings[url]}
+    for url in url_set:
+        before_data = []
+        after_data = []
+        if url in url_to_removed_embeddings:
+            before_data = url_to_removed_embeddings[url]
+        if url in url_to_added_embeddings:
+            after_data = url_to_added_embeddings[url]
+
+        data = {'before': before_data, 'after': after_data}
         url_to_data[url] = data
     for url, data in url_to_data.items():
         file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
