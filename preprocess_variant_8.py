@@ -94,6 +94,28 @@ def get_line_from_code(sep_token, code):
     return lines
 
 
+def write_embeddings_to_files(removed_embeddings, added_embeddings, removed_url_list, added_url_list):
+    url_to_removed_embeddings = {}
+    for index, url in enumerate(removed_url_list):
+        if url not in url_to_removed_embeddings:
+            url_to_removed_embeddings[url] = []
+        url_to_removed_embeddings[url].append(removed_embeddings[index])
+
+    url_to_added_embeddings = {}
+    for index, url in enumerate(added_url_list):
+        if url not in url_to_added_embeddings:
+            url_to_added_embeddings[url] = []
+        url_to_added_embeddings[url].append(added_embeddings[index])
+
+    url_to_data = {}
+    for url, embeddings in url_to_removed_embeddings.items():
+        data = {'before': embeddings, 'after': url_to_added_embeddings[url]}
+        url_to_data[url] = data
+    for url, data in url_to_data.items():
+        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+        json.dump(data, open(file_path, 'w'))
+
+
 def get_data():
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
     code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
@@ -122,6 +144,10 @@ def get_data():
 
         url_to_diff[url] = url_to_diff[url] + diff + '\n'
 
+    removed_code_list = []
+    added_code_list = []
+    removed_url_list = []
+    added_url_list = []
     for url, diff in tqdm.tqdm(url_to_diff.items()):
         file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         if os.path.isfile(file_path):
@@ -130,15 +156,33 @@ def get_data():
         removed_code = get_code_version(diff, False)
         added_code = get_code_version(diff, True)
 
-        removed_code_list = get_line_from_code(tokenizer.sep_token, removed_code)
-        added_code_list = get_line_from_code(tokenizer.sep_token, added_code)
+        new_removed_code_list = get_line_from_code(tokenizer.sep_token, removed_code)
+        new_added_code_list = get_line_from_code(tokenizer.sep_token, added_code)
 
+        for i in range(len(new_removed_code_list)):
+            removed_url_list.append(url)
+
+        for i in range(len(new_added_code_list)):
+            added_url_list.append(url)
+
+        removed_code_list.extend(new_removed_code_list)
+        added_code_list.extend(new_added_code_list)
+
+        if len(removed_code_list) >= 100:
+            removed_embeddings = get_line_embeddings(removed_code_list, tokenizer, code_bert)
+            added_embeddings = get_line_embeddings(added_code_list, tokenizer, code_bert)
+
+            write_embeddings_to_files(removed_embeddings, added_embeddings, removed_url_list, added_url_list)
+
+            removed_code_list = []
+            added_code_list = []
+            removed_url_list = []
+            added_url_list = []
+
+    if len(removed_code_list) > 0 or len(added_code_list) > 0:
         removed_embeddings = get_line_embeddings(removed_code_list, tokenizer, code_bert)
         added_embeddings = get_line_embeddings(added_code_list, tokenizer, code_bert)
-
-        data = {'before': removed_embeddings, 'after': added_embeddings}
-        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
-        json.dump(data, open(file_path, 'w'))
+        write_embeddings_to_files(removed_embeddings, added_embeddings, removed_url_list, added_url_list)
 
 
 if __name__ == '__main__':
