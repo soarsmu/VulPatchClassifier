@@ -143,7 +143,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                                                                                     np.average(train_losses)))
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
-
+        train_losses = []
         model.eval()
 
         print("Calculating validation loss...")

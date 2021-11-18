@@ -151,67 +151,69 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                                    verbose=True, path=BEST_MODEL_PATH)
 
     for epoch in range(number_of_epochs):
-        model.train()
-        total_loss = 0
-        current_batch = 0
-        for id_batch, url_batch, before_batch, after_batch, label_batch in training_generator:
-            before_batch, after_batch, label_batch \
-                = before_batch.to(device), after_batch.to(device), label_batch.to(device)
-            outs = model(before_batch, after_batch)
-            outs = F.log_softmax(outs, dim=1)
-            loss = loss_function(outs, label_batch)
-            train_losses.append(loss.item())
-            model.zero_grad()
-            loss.backward()
-            optimizer.step()
-            lr_scheduler.step()
-            total_loss += loss.detach().item()
+            model.train()
+            total_loss = 0
+            current_batch = 0
+            for id_batch, url_batch, before_batch, after_batch, label_batch in training_generator:
+                before_batch, after_batch, label_batch \
+                    = before_batch.to(device), after_batch.to(device), label_batch.to(device)
+                outs = model(before_batch, after_batch)
+                outs = F.log_softmax(outs, dim=1)
+                loss = loss_function(outs, label_batch)
+                train_losses.append(loss.item())
+                model.zero_grad()
+                loss.backward()
+                optimizer.step()
+                lr_scheduler.step()
+                total_loss += loss.detach().item()
 
-            current_batch += 1
-            if current_batch % 50 == 0:
-                print("Train commit iter {}, total loss {}, average loss {}".format(current_batch, np.sum(train_losses),
-                                                                                    np.average(train_losses)))
+                current_batch += 1
+                if current_batch % 50 == 0:
+                    print("Train commit iter {}, total loss {}, average loss {}".format(current_batch, np.sum(train_losses),
+                                                                                        np.average(train_losses)))
 
-        print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
+            print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
 
-        model.eval()
+            train_losses = []
 
-        print("Calculating validation loss...")
-        val_loss = get_avg_validation_loss(model, val_generator, loss_function)
-        print("Average validation loss of this iteration: {}".format(val_loss))
+            model.eval()
 
-        early_stopping(val_loss, model)
+            print("Calculating validation loss...")
+            val_loss = get_avg_validation_loss(model, val_generator, loss_function)
+            print("Average validation loss of this iteration: {}".format(val_loss))
 
-        if torch.cuda.device_count() > 1:
-            torch.save(model.module.state_dict(), model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
-        else:
-            torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
+            early_stopping(val_loss, model)
 
-        print("Result on Java testing dataset...")
-        precision, recall, f1, auc = predict_test_data(model=model,
-                                                       testing_generator=test_java_generator,
-                                                       device=device)
+            if torch.cuda.device_count() > 1:
+                torch.save(model.module.state_dict(), model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
+            else:
+                torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
 
-        print("Precision: {}".format(precision))
-        print("Recall: {}".format(recall))
-        print("F1: {}".format(f1))
-        print("AUC: {}".format(auc))
-        print("-" * 32)
+            print("Result on Java testing dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=test_java_generator,
+                                                           device=device)
 
-        print("Result on Python testing dataset...")
-        precision, recall, f1, auc = predict_test_data(model=model,
-                                                       testing_generator=test_python_generator,
-                                                       device=device)
+            print("Precision: {}".format(precision))
+            print("Recall: {}".format(recall))
+            print("F1: {}".format(f1))
+            print("AUC: {}".format(auc))
+            print("-" * 32)
 
-        print("Precision: {}".format(precision))
-        print("Recall: {}".format(recall))
-        print("F1: {}".format(f1))
-        print("AUC: {}".format(auc))
-        print("-" * 32)
+            print("Result on Python testing dataset...")
+            precision, recall, f1, auc = predict_test_data(model=model,
+                                                           testing_generator=test_python_generator,
+                                                           device=device)
 
-        if early_stopping.early_stop:
-            print("Early stopping")
-            break
+            print("Precision: {}".format(precision))
+            print("Recall: {}".format(recall))
+            print("F1: {}".format(f1))
+            print("AUC: {}".format(auc))
+            print("-" * 32)
+
+            if early_stopping.early_stop:
+                print("Early stopping")
+                break
 
     return model
 
