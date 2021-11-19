@@ -56,8 +56,6 @@ def infer_variant_1(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
 
-    print("Testing...")
-
     model = VariantOneClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -85,8 +83,6 @@ def infer_variant_1(partition, result_file_path):
 def infer_variant_2(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
-
-    print("Testing...")
 
     model = VariantTwoClassifier()
     if torch.cuda.device_count() > 1:
@@ -116,9 +112,6 @@ def infer_variant_2(partition, result_file_path):
 def infer_variant_3(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
-
-    print("Testing...")
-
     model = VariantThreeClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -147,9 +140,6 @@ def infer_variant_3(partition, result_file_path):
 def infer_variant_5(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
-
-    print("Testing...")
-
     model = VariantFiveClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -178,9 +168,6 @@ def infer_variant_5(partition, result_file_path):
 def infer_variant_6(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
-
-    print("Testing...")
-
     model = VariantSixClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -209,8 +196,6 @@ def infer_variant_6(partition, result_file_path):
 def infer_variant_7(partition, result_file_path):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
-
-    print("Testing...")
 
     model = VariantSevenClassifier()
     if torch.cuda.device_count() > 1:
