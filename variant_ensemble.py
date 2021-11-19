@@ -59,10 +59,10 @@ def infer_variant_1(partition, result_file_path):
     print("Testing...")
 
     model = VariantOneClassifier()
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-        model = nn.DataParallel(model)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+    #     model = nn.DataParallel(model)
 
     model.load_state_dict(torch.load(VARIANT_ONE_MODEL_PATH, map_location='cuda:1'))
     model.to(device)
