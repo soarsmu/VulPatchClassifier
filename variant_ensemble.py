@@ -124,7 +124,7 @@ def infer_variant_3(partition, result_file_path):
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
     dataset = VariantThreeDataset(ids, id_to_label, id_to_url)
-    generator = DataLoader(dataset, **TEST_PARAMS)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_3.custom_collate)
 
     precision, recall, f1, auc, urls, probs = variant_3.predict_test_data(model, generator, device, need_prob=True)
 
@@ -209,7 +209,7 @@ def infer_variant_7(partition, result_file_path):
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
     dataset = VariantSevenDataset(ids, id_to_label, id_to_url)
-    generator = DataLoader(dataset, **TEST_PARAMS)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_7.custom_collate)
 
     precision, recall, f1, auc, urls, probs = variant_7.predict_test_data(model, generator, device, need_prob=True)
 
