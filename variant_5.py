@@ -11,7 +11,7 @@ from transformers import get_scheduler
 from entities import VariantFiveDataset
 from model import VariantFiveClassifier
 import pandas as pd
-
+from tqdm import tqdm
 from pytorchtools import EarlyStopping
 import utils
 
@@ -61,7 +61,7 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
     probs = []
     model.eval()
     with torch.no_grad():
-        for id_batch, url_batch, before_batch, after_batch, label_batch in testing_generator:
+        for id_batch, url_batch, before_batch, after_batch, label_batch in tqdm(testing_generator):
             before_batch, after_batch, label_batch \
                 = before_batch.to(device), after_batch.to(device), label_batch.to(device)
 

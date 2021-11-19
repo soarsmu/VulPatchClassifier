@@ -14,6 +14,7 @@ import pandas as pd
 from model import VariantOneClassifier
 from pytorchtools import EarlyStopping
 import utils
+from tqdm import tqdm
 
 # dataset_name = 'huawei_csv_subset_slicing_limited_10.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
@@ -61,7 +62,7 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
     probs = []
     model.eval()
     with torch.no_grad():
-        for id_batch, url_batch, embedding_batch, label_batch in testing_generator:
+        for id_batch, url_batch, embedding_batch, label_batch in tqdm(testing_generator):
             embedding_batch, label_batch \
                 = embedding_batch.to(device), label_batch.to(device)
 

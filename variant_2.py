@@ -57,7 +57,7 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
     urls = []
     with torch.no_grad():
         model.eval()
-        for ids, url_batch, file_batch, label_batch in testing_generator:
+        for ids, url_batch, file_batch, label_batch in tqdm(testing_generator):
             file_batch, label_batch = file_batch.to(device), label_batch.to(device)
             outs = model(file_batch)
 
