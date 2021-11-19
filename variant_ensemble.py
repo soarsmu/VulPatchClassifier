@@ -37,7 +37,7 @@ TEST_BATCH_SIZE = 128
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 use_cuda = cuda.is_available()
-device = torch.device("cuda:1" if use_cuda else "cpu")
+device = torch.device("cuda:0" if use_cuda else "cpu")
 random_seed = 109
 torch.manual_seed(random_seed)
 torch.cuda.manual_seed(random_seed)
@@ -59,12 +59,12 @@ def infer_variant_1(partition, result_file_path):
     print("Testing...")
 
     model = VariantOneClassifier()
-    # if torch.cuda.device_count() > 1:
-    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    #     # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
-    #     model = nn.DataParallel(model)
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        model = nn.DataParallel(model)
 
-    model.load_state_dict(torch.load(VARIANT_ONE_MODEL_PATH, map_location='cuda:1'))
+    model.load_state_dict(torch.load(VARIANT_ONE_MODEL_PATH))
     model.to(device)
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
