@@ -4,8 +4,10 @@ import os
 from torch.utils.data import Dataset, DataLoader
 from torch import cuda
 import pandas as pd
-from entities import VariantOneDataset, VariantTwoDataset, VariantFiveDataset, VariantSixDataset, VariantThreeDataset, VariantSevenDataset
-from model import VariantOneClassifier, VariantTwoClassifier, VariantFiveClassifier, VariantSixClassifier, VariantThreeClassifier, VariantSevenClassifier
+from entities import VariantOneDataset, VariantTwoDataset, VariantFiveDataset, VariantSixDataset, VariantThreeDataset, \
+    VariantSevenDataset
+from model import VariantOneClassifier, VariantTwoClassifier, VariantFiveClassifier, VariantSixClassifier, \
+    VariantThreeClassifier, VariantSevenClassifier
 import utils
 import variant_1
 import variant_2
@@ -17,6 +19,7 @@ from sklearn import metrics
 from statistics import mean
 from sklearn.linear_model import LogisticRegression
 import csv
+
 # dataset_name = 'huawei_csv_subset_slicing_limited_10.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 dataset_name = 'ase_dataset_sept_19_2021.csv'
@@ -31,7 +34,6 @@ VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_best_model.sav'
 VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_best_model.sav'
 VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_best_model.sav'
 VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
-
 
 TEST_BATCH_SIZE = 128
 
@@ -286,12 +288,8 @@ def get_data_ensemble_model(prob_list, label_list):
     return clf
 
 
-def get_variant_result(java_result_path, python_result_path):
-    result_java = read_pred_prob(java_result_path)
-    result_python = read_pred_prob(python_result_path)
-    result = {}
-    result.update(result_java)
-    result.update(result_python)
+def get_variant_result(variant_result_path):
+    result = read_pred_prob(variant_result_path)
 
     return result
 
@@ -303,7 +301,7 @@ def get_prob(result_list, url):
 def get_partition_prob_list(result_path_list, partition):
     result_list = []
     for result_path in result_path_list:
-        variant_result = get_variant_result(result_path[0], result_path[1])
+        variant_result = get_variant_result(result_path)
         result_list.append(variant_result)
 
     url_data, label_data = utils.get_data(dataset_name)
@@ -312,7 +310,7 @@ def get_partition_prob_list(result_path_list, partition):
 
     for i, url in enumerate(url_data[partition]):
         prob_list.append(get_prob(result_list, url))
-        label_list.append(url_data[partition][i])
+        label_list.append(label_data[partition][i])
 
     return prob_list, label_list
 
@@ -327,31 +325,48 @@ def get_combined_ensemble_model():
         ['variant_7_prob_train_java.txt', 'variant_7_prob_train_python.txt']
     ]
 
-    val_result_path_list = [
-        ['variant_1_prob_val_java.txt', 'variant_1_prob_val_python.txt'],
-        ['variant_2_prob_val_java.txt', 'variant_2_prob_val_python.txt'],
-        ['variant_3_prob_val_java.txt', 'variant_3_prob_val_python.txt'],
-        ['variant_5_prob_val_java.txt', 'variant_5_prob_val_python.txt'],
-        ['variant_6_prob_val_java.txt', 'variant_6_prob_val_python.txt'],
-        ['variant_7_prob_val_java.txt', 'variant_7_prob_val_python.txt']
-    ]
+    val_result_path_list = ['variant_1_prob_val.txt',
+                            'variant_2_prob_val.txt',
+                            'variant_3_prob_val.txt',
+                            'variant_5_prob_val.txt',
+                            'variant_6_prob_val.txt',
+                            'variant_7_prob_val.txt']
 
-    test_result_path_list = [
-        ['variant_1_prob_java.txt', 'variant_1_prob_python.txt'],
-        ['variant_2_prob_java.txt', 'variant_2_prob_python.txt'],
-        ['variant_3_prob_java.txt', 'variant_3_prob_python.txt'],
-        ['variant_5_prob_java.txt', 'variant_5_prob_python.txt'],
-        ['variant_6_prob_java.txt', 'variant_6_prob_python.txt'],
-        ['variant_7_prob_java.txt', 'variant_7_prob_python.txt'],
-    ]
+    test_java_result_path_list = ['variant_1_prob_java.txt',
+                                  'variant_2_prob_java.txt',
+                                  'variant_3_prob_java.txt',
+                                  'variant_5_prob_java.txt',
+                                  'variant_6_prob_java.txt',
+                                  'variant_7_prob_java.txt']
 
-    train_prob_list, train_label_list = get_partition_prob_list(train_result_path_list, 'train')
+    test_python_result_path_list = ['variant_1_prob_python.txt',
+                                    'variant_2_prob_python.txt',
+                                    'variant_3_prob_python.txt',
+                                    'variant_5_prob_python.txt',
+                                    'variant_6_prob_python.txt',
+                                    'variant_7_prob_python.txt']
+
+    # train_prob_list, train_label_list = get_partition_prob_list(train_result_path_list, 'train')
     val_prob_list, val_label_list = get_partition_prob_list(val_result_path_list, 'val')
-    test_prob_list, test_label_list = get_partition_prob_list(test_result_path_list, 'test')
+    java_test_prob_list, java_test_label_list = get_partition_prob_list(test_java_result_path_list, 'test_java')
+    python_test_prob_list, python_test_label_list = get_partition_prob_list(test_python_result_path_list, 'test_python')
 
-    train_ensemble_model = get_data_ensemble_model(train_prob_list, train_label_list)
+    # train_ensemble_model = get_data_ensemble_model(train_prob_list, train_label_list)
+    print("Training ensemble model...")
     val_ensemble_model = get_data_ensemble_model(val_prob_list, val_label_list)
+    print("Finish training")
+
+    print("Calculate AUC on Java...")
+    y_probs = val_ensemble_model.predict_proba(java_test_prob_list)
+    y_probs = [prob[1] for prob in y_probs.tolist()]
+    auc = metrics.roc_auc_score(y_true=java_test_label_list, y_score=y_probs)
+    print("AUC on Java of ensemble model: {}".format(auc))
+
+    print("Calculate AUC on Python...")
+    y_probs = val_ensemble_model.predict_proba(python_test_prob_list)
+    y_probs = [prob[1] for prob in y_probs.tolist()]
+    auc = metrics.roc_auc_score(y_true=python_test_label_list, y_score=y_probs)
+    print("AUC on Python of ensemble model: {}".format(auc))
 
 
-infer_variant_1('val', 'variant_1_prob_val.txt')
-
+get_combined_ensemble_model()

@@ -50,7 +50,7 @@ HIDDEN_DIM = 768
 HIDDEN_DIM_DROPOUT_PROB = 0.3
 NUMBER_OF_LABELS = 2
 
-model_path_prefix = model_folder_path + '/patch_classifier_variant_5_16112021_model_'
+# model_path_prefix = model_folder_path + '/patch_classifier_variant_5_16112021_model_'
 
 
 def predict_test_data(model, testing_generator, device, need_prob=False):
@@ -153,10 +153,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
         early_stopping(val_loss, model)
 
-        if torch.cuda.device_count() > 1:
-            torch.save(model.module.state_dict(), model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
-        else:
-            torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
+        # if torch.cuda.device_count() > 1:
+        #     torch.save(model.module.state_dict(), model_path_prefix + '_patch_classifier_epoc_' + str(epoch) + '.sav')
+        # else:
+        #     torch.save(model.state_dict(), model_path_prefix + '_patch_classifier.sav')
 
         print("Result on Java testing dataset...")
         precision, recall, f1, auc = predict_test_data(model=model,
