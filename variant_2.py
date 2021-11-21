@@ -183,6 +183,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
 def do_train():
     print("Dataset name: {}".format(dataset_name))
+    print("Saving model to: {}".format(BEST_MODEL_PATH))
     url_data, label_data = utils.get_data(dataset_name)
 
     train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
