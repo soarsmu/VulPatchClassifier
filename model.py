@@ -141,6 +141,24 @@ class VariantTwoClassifier(nn.Module):
         return out
 
 
+class VariantTwoFineTuneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantTwoFineTuneClassifier, self).__init__()
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+        self.classifier = VariantTwoClassifier()
+
+    def forward(self, input_list_batch, mask_list_batch):
+        d1, d2, d3 = input_list_batch.shape
+        input_list_batch = torch.reshape(input_list_batch, (d1 * d2, d3))
+        mask_list_batch = torch.reshape(mask_list_batch, (d1 * d2, d3))
+        embeddings = self.code_bert(input_ids=input_list_batch, attention_mask=mask_list_batch).last_hidden_state[:, 0, :]
+        embeddings = torch.reshape(embeddings, (d1, d2, d3))
+
+        out = self.classifier(embeddings)
+
+        return out
+
+
 class VariantSixClassifier(nn.Module):
     def __init__(self):
         super(VariantSixClassifier, self).__init__()
