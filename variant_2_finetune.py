@@ -31,9 +31,9 @@ model_folder_path = os.path.join(directory, 'model')
 LIMIT_FILE_COUNT = 5
 
 NUMBER_OF_EPOCHS = 15
-TRAIN_BATCH_SIZE = 8
-VALIDATION_BATCH_SIZE = 64
-TEST_BATCH_SIZE = 64
+TRAIN_BATCH_SIZE = 4
+VALIDATION_BATCH_SIZE = 32
+TEST_BATCH_SIZE = 32
 EARLY_STOPPING_ROUND = 5
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}

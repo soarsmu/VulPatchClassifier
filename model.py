@@ -144,6 +144,7 @@ class VariantTwoClassifier(nn.Module):
 class VariantTwoFineTuneClassifier(nn.Module):
     def __init__(self):
         super(VariantTwoFineTuneClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
         self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
         self.classifier = VariantTwoClassifier()
 
@@ -152,7 +153,7 @@ class VariantTwoFineTuneClassifier(nn.Module):
         input_list_batch = torch.reshape(input_list_batch, (d1 * d2, d3))
         mask_list_batch = torch.reshape(mask_list_batch, (d1 * d2, d3))
         embeddings = self.code_bert(input_ids=input_list_batch, attention_mask=mask_list_batch).last_hidden_state[:, 0, :]
-        embeddings = torch.reshape(embeddings, (d1, d2, d3))
+        embeddings = torch.reshape(embeddings, (d1, d2, self.HIDDEN_DIM))
 
         out = self.classifier(embeddings)
 
