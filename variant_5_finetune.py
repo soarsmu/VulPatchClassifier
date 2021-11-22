@@ -98,7 +98,7 @@ def get_avg_validation_loss(model, validation_generator, loss_function):
     with torch.no_grad():
         for id_batch, url_batch, added_input, added_mask, removed_input, removed_mask, label_batch in validation_generator:
             added_input, added_mask, removed_input, removed_mask, label_batch \
-                = added_input.to(device), added_mask.to(device), removed_input.todevice(), removed_mask.to(device), label_batch.to(device)
+                = added_input.to(device), added_mask.to(device), removed_input.to(device), removed_mask.to(device), label_batch.to(device)
             outs = model(added_input, added_mask, removed_input, removed_mask)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
