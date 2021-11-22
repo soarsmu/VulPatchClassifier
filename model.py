@@ -378,6 +378,19 @@ class VariantFiveClassifier(nn.Module):
         return x
 
 
+class VariantFiveFineTuneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantFiveFineTuneClassifier, self).__init__()
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+        self.classifier = VariantFiveClassifier()
+
+    def forward(self, added_input, added_mask, removed_input, removed_mask):
+        added_embeddings = self.code_bert(input_ids=added_input, attention_mask=added_mask)
+        removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask)
+        out = self.classifier(added_embeddings, removed_embeddings)
+        return out
+
+
 class VariantEightClassifier(nn.Module):
     def __init__(self):
         super(VariantEightClassifier, self).__init__()

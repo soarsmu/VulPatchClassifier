@@ -9,18 +9,18 @@ from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantOneFinetuneDataset
-from model import VariantOneFinetuneClassifier
+from entities import VariantFiveFinetuneDataset
+from model import VariantFiveFineTuneClassifier
 from pytorchtools import EarlyStopping
 from tqdm import tqdm
 import pandas as pd
-import preprocess_variant_1
+import preprocess_variant_5
 
 
 # dataset_name = 'huawei_sub_dataset.csv'
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
-BEST_MODEL_PATH = 'model/patch_variant_1_finetune_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_5_finetune_best_model.sav'
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,9 +29,9 @@ commit_code_folder_path = os.path.join(directory, 'commit_code')
 model_folder_path = os.path.join(directory, 'model')
 
 NUMBER_OF_EPOCHS = 15
-TRAIN_BATCH_SIZE = 16
-VALIDATION_BATCH_SIZE = 128
-TEST_BATCH_SIZE = 128
+TRAIN_BATCH_SIZE = 8
+VALIDATION_BATCH_SIZE = 64
+TEST_BATCH_SIZE = 64
 EARLY_STOPPING_ROUND = 5
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
@@ -68,11 +68,10 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
     probs = []
     model.eval()
     with torch.no_grad():
-        for id_batch, url_batch, input_batch, mask_batch, label_batch in tqdm(testing_generator):
-            input_batch, mask_batch, label_batch \
-                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
-
-            outs = model(input_batch, mask_batch)
+        for id_batch, url_batch, added_input, added_mask, removed_input, removed_mask, label_batch in tqdm(testing_generator):
+            added_input, added_mask, removed_input, removed_mask, label_batch \
+                = added_input.to(device), added_mask.to(device), removed_input.to(device), removed_mask.to(device), label_batch.to(device)
+            outs = model(added_input, added_mask, removed_input, removed_mask)
             outs = F.softmax(outs, dim=1)
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
@@ -97,10 +96,10 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
 def get_avg_validation_loss(model, validation_generator, loss_function):
     validation_loss = 0
     with torch.no_grad():
-        for id_batch, url_batch, input_batch, mask_batch, label_batch in validation_generator:
-            input_batch, mask_batch, label_batch \
-                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
-            outs = model(input_batch, mask_batch)
+        for id_batch, url_batch, added_input, added_mask, removed_input, removed_mask, label_batch in validation_generator:
+            added_input, added_mask, removed_input, removed_mask, label_batch \
+                = added_input.to(device), added_mask.to(device), removed_input.todevice(), removed_mask.to(device), label_batch.to(device)
+            outs = model(added_input, added_mask, removed_input, removed_mask)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
@@ -130,10 +129,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, input_batch, mask_batch, label_batch in training_generator:
-            input_batch, mask_batch, label_batch \
-                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
-            outs = model(input_batch, mask_batch)
+        for id_batch, url_batch, added_input, added_mask, removed_input, removed_mask, label_batch in training_generator:
+            added_input, added_mask, removed_input, removed_mask, label_batch \
+                = added_input.to(device), added_mask.to(device), removed_input.to(device), removed_mask.to(device), label_batch.to(device)
+            outs = model(added_input, added_mask, removed_input, removed_mask)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -150,7 +149,6 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
         train_losses = []
-
         model.eval()
 
         print("Calculating validation loss...")
@@ -193,28 +191,32 @@ def retrieve_patch_data(all_data, all_label, all_url):
 
     print("Preparing tokenizer data...")
 
-    count = 0
-
     id_to_label = {}
     id_to_url = {}
-    id_to_input = {}
-    id_to_mask = {}
-    for i in tqdm(range(len(all_data))):
-        added_code = preprocess_variant_1.get_code_version(diff=all_data[i], added_version=True)
-        deleted_code = preprocess_variant_1.get_code_version(diff=all_data[i], added_version=False)
+    id_to_added_input = {}
+    id_to_added_mask = {}
+    id_to_removed_input = {}
+    id_to_removed_mask = {}
 
-        # TODO: need to balance code between added_code and deleted_code due to data truncation?
-        code = added_code + tokenizer.sep_token + deleted_code
-        input_ids, mask = get_input_and_mask(tokenizer, code)
-        id_to_input[i] = input_ids
-        id_to_mask[i] = mask
+    for i in tqdm(range(len(all_data))):
+        added_code = preprocess_variant_5.get_code_version(diff=all_data[i], added_version=True)
+        removed_code = preprocess_variant_5.get_code_version(diff=all_data[i], added_version=False)
+
+        added_code = tokenizer.sep_token + added_code
+        removed_code = tokenizer.sep_token + removed_code
+
+        input_ids, mask = get_input_and_mask(tokenizer, added_code)
+        id_to_added_input[i] = input_ids
+        id_to_added_mask[i] = mask
+
+        input_ids, mask = get_input_and_mask(tokenizer, removed_code)
+        id_to_removed_input[i] = input_ids
+        id_to_removed_mask[i] = mask
+
         id_to_label[i] = all_label[i]
         id_to_url[i] = all_url[i]
-        # count += 1
-        # if count % 1000 == 0:
-        #     print("Number of records tokenized: {}/{}".format(count, len(all_data)))
 
-    return id_to_input, id_to_mask, id_to_label, id_to_url
+    return id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask, id_to_label, id_to_url
 
 
 def get_data():
@@ -319,20 +321,21 @@ def do_train():
     all_url = url_data['train'] + url_data['val'] + url_data['test_java'] + url_data['test_python']
 
     print("Preparing commit patch data...")
-    id_to_input, id_to_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
+    id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask, id_to_label, id_to_url \
+        = retrieve_patch_data(all_data, all_label, all_url)
     print("Finish preparing commit patch data")
 
-    training_set = VariantOneFinetuneDataset(train_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
-    val_set = VariantOneFinetuneDataset(val_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
-    test_java_set = VariantOneFinetuneDataset(test_java_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
-    test_python_set = VariantOneFinetuneDataset(test_python_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
+    training_set = VariantFiveFinetuneDataset(train_ids, id_to_label, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask)
+    val_set = VariantFiveFinetuneDataset(val_ids, id_to_label, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask)
+    test_java_set = VariantFiveFinetuneDataset(test_java_ids, id_to_label, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask)
+    test_python_set = VariantFiveFinetuneDataset(test_python_ids, id_to_label, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = VariantOneFinetuneClassifier()
+    model = VariantFiveFineTuneClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
