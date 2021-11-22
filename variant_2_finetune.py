@@ -50,7 +50,7 @@ torch.cuda.manual_seed(random_seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
-CODE_LENGTH = 512
+CODE_LENGTH = 256
 HIDDEN_DIM = 768
 HIDDEN_DIM_DROPOUT_PROB = 0.3
 NUMBER_OF_LABELS = 2
