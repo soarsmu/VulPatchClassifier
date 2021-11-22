@@ -294,6 +294,7 @@ def get_data():
 
 def do_train():
     print("Dataset name: {}".format(dataset_name))
+    print("Saving model to: {}".format(BEST_MODEL_PATH))
     patch_data, label_data, url_data = get_data()
 
     train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
