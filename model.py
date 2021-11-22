@@ -385,8 +385,8 @@ class VariantFiveFineTuneClassifier(nn.Module):
         self.classifier = VariantFiveClassifier()
 
     def forward(self, added_input, added_mask, removed_input, removed_mask):
-        added_embeddings = self.code_bert(input_ids=added_input, attention_mask=added_mask)
-        removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask)
+        added_embeddings = self.code_bert(input_ids=added_input, attention_mask=added_mask).last_hidden_state[:, 0, :]
+        removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask).last_hidden_state[:, 0, :]
         out = self.classifier(added_embeddings, removed_embeddings)
         return out
 

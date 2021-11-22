@@ -29,7 +29,7 @@ commit_code_folder_path = os.path.join(directory, 'commit_code')
 model_folder_path = os.path.join(directory, 'model')
 
 NUMBER_OF_EPOCHS = 15
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 4
 VALIDATION_BATCH_SIZE = 64
 TEST_BATCH_SIZE = 64
 EARLY_STOPPING_ROUND = 5
