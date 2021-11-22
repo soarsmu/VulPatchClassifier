@@ -17,8 +17,8 @@ import pandas as pd
 import preprocess_variant_1
 
 
-# dataset_name = 'huawei_sub_dataset.csv'
-dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 BEST_MODEL_PATH = 'model/patch_variant_2_finetune_best_model.sav'
 
@@ -59,7 +59,7 @@ NUMBER_OF_LABELS = 2
 def get_input_and_mask(tokenizer, code):
     inputs = tokenizer(code, padding='max_length', max_length=CODE_LENGTH, truncation=True, return_tensors="pt")
 
-    return inputs.data['input_ids'][0], inputs.data['attention_mask'][0]
+    return inputs.data['input_ids'], inputs.data['attention_mask']
 
 
 def predict_test_data(model, testing_generator, device, need_prob=False):
@@ -218,13 +218,9 @@ def retrieve_patch_data(all_data, all_label, all_url):
         while len(code_list) < 5:
             code_list.append(tokenizer.sep_token)
 
-        for code in enumerate(code_list):
-            input_ids, mask = get_input_and_mask(tokenizer, code)
-            input_list.append(input_ids)
-            mask_list.append(mask)
-
-        id_to_input_list[i] = torch.stack(input_list)
-        id_to_mask_list[i] = torch.stack(mask_list)
+        input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
+        id_to_input_list[i] = input_ids_list
+        id_to_mask_list[i] = mask_list
         id_to_label[i] = all_label[i]
         id_to_url[i] = all_url[i]
 
