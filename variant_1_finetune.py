@@ -201,7 +201,7 @@ def retrieve_patch_data(all_data, all_label, all_url):
     id_to_url = {}
     id_to_input = {}
     id_to_mask = {}
-    for i in range(len(all_data)):
+    for i in tqdm(range(len(all_data))):
         added_code = preprocess_variant_1.get_code_version(diff=all_data[i], added_version=True)
         deleted_code = preprocess_variant_1.get_code_version(diff=all_data[i], added_version=False)
 
@@ -212,9 +212,9 @@ def retrieve_patch_data(all_data, all_label, all_url):
         id_to_mask[i] = mask
         id_to_label[i] = all_label[i]
         id_to_url[i] = all_url[i]
-        count += 1
-        if count % 1000 == 0:
-            print("Number of records tokenized: {}/{}".format(count, len(all_data)))
+        # count += 1
+        # if count % 1000 == 0:
+        #     print("Number of records tokenized: {}/{}".format(count, len(all_data)))
 
     return id_to_input, id_to_mask, id_to_label, id_to_url
 
