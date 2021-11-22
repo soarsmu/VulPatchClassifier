@@ -1,3 +1,4 @@
+from transformers import RobertaTokenizer, RobertaModel
 import torch
 from torch import nn as nn
 import numpy as np
@@ -338,6 +339,20 @@ class VariantOneClassifier(nn.Module):
         x = self.out_proj(x)
 
         return x
+
+
+class VariantOneFinetuneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantOneFinetuneClassifier, self).__init__()
+
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+        self.classifier = VariantOneClassifier()
+
+    def forward(self, input_batch, mask_batch):
+        embeddings = self.code_bert(input_ids=input_batch, attention_mask=mask_batch)
+        embeddings = embeddings.last_hidden_state[:, 0, :]
+        out = self.classifier(embeddings)
+        return out
 
 
 class VariantFiveClassifier(nn.Module):

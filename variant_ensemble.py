@@ -252,10 +252,10 @@ def read_pred_prob(file_path):
 
 def get_auc_max_ensemble():
     print("Reading result...")
-    variant_1_result = read_pred_prob('variant_1_prob_java.txt')
-    variant_2_result = read_pred_prob('variant_2_prob_java.txt')
-    variant_5_result = read_pred_prob('variant_5_prob_java.txt')
-    variant_6_result = read_pred_prob('variant_6_prob_java.txt')
+    variant_1_result = read_pred_prob('variant_1_prob_test_python_lr_1e4.txt')
+    variant_2_result = read_pred_prob('variant_2_prob_test_python_lr_1e4.txt')
+    variant_5_result = read_pred_prob('variant_5_prob_test_python_lr_1e4.txt')
+    variant_6_result = read_pred_prob('variant_6_prob_test_python_lr_1e4.txt')
 
     print("Finish reading result")
 
@@ -265,11 +265,11 @@ def get_auc_max_ensemble():
         prob_2 = variant_2_result[url]
         prob_5 = variant_5_result[url]
         prob_6 = variant_6_result[url]
-        url_to_max_prob[url] = mean([prob_1, prob_2, prob_5, prob_6])
+        url_to_max_prob[url] = max([prob_1, prob_2, prob_5, prob_6])
 
     url_data, label_data = utils.get_data(dataset_name)
-    url_test = url_data['test_java']
-    label_test = label_data['test_java']
+    url_test = url_data['test_python']
+    label_test = label_data['test_python']
 
     y_score = []
     y_true = []
@@ -325,26 +325,26 @@ def get_combined_ensemble_model():
         ['variant_7_prob_train_java.txt', 'variant_7_prob_train_python.txt']
     ]
 
-    val_result_path_list = ['variant_1_prob_val.txt',
-                            'variant_2_prob_val.txt',
-                            'variant_3_prob_val.txt',
-                            'variant_5_prob_val.txt',
-                            'variant_6_prob_val.txt',
-                            'variant_7_prob_val.txt']
+    val_result_path_list = ['variant_1_prob_val_lr_1e4.txt',
+                            'variant_2_prob_val_lr_1e4.txt',
+                            # 'variant_3_prob_val.txt',
+                            'variant_5_prob_val_lr_1e4.txt',
+                            'variant_6_prob_val_lr_1e4.txt']
+                            # 'variant_7_prob_val.txt']
 
-    test_java_result_path_list = ['variant_1_prob_java.txt',
-                                  'variant_2_prob_java.txt',
-                                  'variant_3_prob_java.txt',
-                                  'variant_5_prob_java.txt',
-                                  'variant_6_prob_java.txt',
-                                  'variant_7_prob_java.txt']
+    test_java_result_path_list = ['variant_1_prob_test_java_lr_1e4.txt',
+                                  'variant_2_prob_test_java_lr_1e4.txt',
+                                  # 'variant_3_prob_java.txt',
+                                  'variant_5_prob_test_java_lr_1e4.txt',
+                                  'variant_6_prob_test_java_lr_1e4.txt']
+                                  # 'variant_7_prob_java.txt']
 
-    test_python_result_path_list = ['variant_1_prob_python.txt',
-                                    'variant_2_prob_python.txt',
-                                    'variant_3_prob_python.txt',
-                                    'variant_5_prob_python.txt',
-                                    'variant_6_prob_python.txt',
-                                    'variant_7_prob_python.txt']
+    test_python_result_path_list = ['variant_1_prob_test_python_lr_1e4.txt',
+                                    'variant_1_prob_test_python_lr_1e4.txt',
+                                    # 'variant_3_prob_python.txt',
+                                    'variant_1_prob_test_python_lr_1e4.txt',
+                                    'variant_1_prob_test_python_lr_1e4.txt']
+                                    # 'variant_7_prob_python.txt']
 
     # train_prob_list, train_label_list = get_partition_prob_list(train_result_path_list, 'train')
     val_prob_list, val_label_list = get_partition_prob_list(val_result_path_list, 'val')
