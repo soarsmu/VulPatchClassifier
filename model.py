@@ -377,9 +377,11 @@ class VariantOneFinetuneClassifier(nn.Module):
 
     def freeze_codebert(self):
         if not isinstance(self, nn.DataParallel):
-            self.code_bert.requires_grad = False
+            for param in self.code_bert.parameters:
+                param.requires_grad = False
         else:
-            self.module.code_bert.requires_grad = False
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
 
 
 class VariantFiveClassifier(nn.Module):
