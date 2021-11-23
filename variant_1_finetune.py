@@ -129,7 +129,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
     for epoch in range(number_of_epochs):
         if epoch == FINETUNE_EPOCH:
             torch.save(model.state_dict(), FINE_TUNED_MODEL_PATH)
-            model.freeze_codebert()
+            if not isinstance(model, nn.DataParallel):
+                model.freeze_codebert()
+            else:
+                model.module.freeze_codebert()
         model.train()
         total_loss = 0
         current_batch = 0
