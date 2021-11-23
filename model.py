@@ -342,8 +342,8 @@ class VariantOneClassifier(nn.Module):
     def __init__(self):
         super(VariantOneClassifier, self).__init__()
         self.HIDDEN_DIM = 768
-        self.DENSE_DIM = 128
-        self.HIDDEN_DIM_DROPOUT_PROB = 0.5
+        self.DENSE_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
         self.NUMBER_OF_LABELS = 2
         self.linear = nn.Linear(self.HIDDEN_DIM, self.DENSE_DIM)
         self.relu = nn.ReLU()
@@ -374,6 +374,12 @@ class VariantOneFinetuneClassifier(nn.Module):
         embeddings = embeddings.last_hidden_state[:, 0, :]
         out = self.classifier(embeddings)
         return out
+
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            self.code_bert.requires_grad = False
+        else:
+            self.module.code_bert.requires_grad = False
 
 
 class VariantFiveClassifier(nn.Module):

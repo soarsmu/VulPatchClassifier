@@ -21,8 +21,11 @@ import preprocess_variant_1
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 BEST_MODEL_PATH = 'model/patch_variant_1_finetune_best_model.sav'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_1_finetuned_model.sav'
 
 directory = os.path.dirname(os.path.abspath(__file__))
+
+FINETUNE_EPOCH = 1
 
 commit_code_folder_path = os.path.join(directory, 'commit_code')
 
@@ -124,6 +127,9 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                                    verbose=True, path=BEST_MODEL_PATH)
 
     for epoch in range(number_of_epochs):
+        if epoch == FINETUNE_EPOCH:
+            torch.save(model.state_dict(), FINE_TUNED_MODEL_PATH)
+            model.freeze_codebert()
         model.train()
         total_loss = 0
         current_batch = 0
