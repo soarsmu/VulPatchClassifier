@@ -342,16 +342,18 @@ class VariantOneClassifier(nn.Module):
     def __init__(self):
         super(VariantOneClassifier, self).__init__()
         self.HIDDEN_DIM = 768
-        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.DENSE_DIM = 128
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.5
         self.NUMBER_OF_LABELS = 2
-        self.linear = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.DENSE_DIM)
         self.relu = nn.ReLU()
 
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
-        self.out_proj = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
+        self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
     def forward(self, embedding_batch):
         x = embedding_batch
+        x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
         x = self.drop_out(x)
@@ -378,9 +380,10 @@ class VariantFiveClassifier(nn.Module):
     def __init__(self):
         super(VariantFiveClassifier, self).__init__()
         self.HIDDEN_DIM = 768
-        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.DENSE_DIM = 128
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.5
         self.NUMBER_OF_LABELS = 2
-        self.linear = nn.Linear(2 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.linear = nn.Linear(2 * self.HIDDEN_DIM, self.DENSE_DIM)
         self.relu = nn.ReLU()
 
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
@@ -389,6 +392,7 @@ class VariantFiveClassifier(nn.Module):
     def forward(self, before_batch, after_batch):
         combined = torch.cat([before_batch, after_batch], dim=1)
         x = combined
+        x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
         x = self.drop_out(x)
