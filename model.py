@@ -387,7 +387,7 @@ class VariantFiveClassifier(nn.Module):
         self.relu = nn.ReLU()
 
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
-        self.out_proj = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
+        self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
     def forward(self, before_batch, after_batch):
         combined = torch.cat([before_batch, after_batch], dim=1)
