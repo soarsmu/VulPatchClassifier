@@ -49,9 +49,6 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
 CODE_LENGTH = 512
-HIDDEN_DIM = 768
-HIDDEN_DIM_DROPOUT_PROB = 0.3
-NUMBER_OF_LABELS = 2
 
 
 def get_input_and_mask(tokenizer, code):
