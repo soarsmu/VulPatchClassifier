@@ -89,6 +89,11 @@ def get_data():
 
     model.load_state_dict(torch.load(FINE_TUNED_MODEL_PATH))
     code_bert = model.module.code_bert
+
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        code_bert = nn.DataParallel(model)
     code_bert = code_bert.to(device)
 
     print("Reading dataset...")
@@ -120,7 +125,7 @@ def get_data():
         code_list.append(code)
         url_list.append(url)
 
-        if len(url_list) >= 50:
+        if len(url_list) >= 100:
             write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
             code_list = []
             url_list = []
