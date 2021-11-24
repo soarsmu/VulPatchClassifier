@@ -19,11 +19,13 @@ import utils
 dataset_name = 'huawei_sub_dataset.csv'
 # dataset_name = 'ase_dataset_sept_19_2021.csv'
 
+EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_5'
+
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_5_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_5_finetune_1_epoch_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 TRAIN_BATCH_SIZE = 128
@@ -221,10 +223,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-    training_set = VariantFiveDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantFiveDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantFiveDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantFiveDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantFiveDataset(train_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    val_set = VariantFiveDataset(val_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_java_set = VariantFiveDataset(test_java_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_python_set = VariantFiveDataset(test_python_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_java_generator = DataLoader(val_set, **VALIDATION_PARAMS)

@@ -5,7 +5,6 @@ import json
 import torch
 
 VARIANT_3_DIRECTORY = '../embeddings/variant_3'
-VARIANT_5_DIRECTORY = '../embeddings/variant_5'
 VARIANT_6_DIRECTORY = '../embeddings/variant_6'
 VARIANT_7_DIRECTORY = '../embeddings/variant_7'
 VARIANT_8_DIRECTORY = '../embeddings/variant_8'
@@ -213,10 +212,11 @@ class VariantTwoDataset(Dataset):
 
 
 class VariantFiveDataset(Dataset):
-    def __init__(self, list_IDs, labels, id_to_url):
+    def __init__(self, list_IDs, labels, id_to_url, embedding_directory):
         self.list_IDs = list_IDs
         self.labels = labels
         self.id_to_url = id_to_url
+        self.embedding_directory = embedding_directory
 
     def __len__(self):
         return len(self.list_IDs)
@@ -224,7 +224,7 @@ class VariantFiveDataset(Dataset):
     def __getitem__(self, index):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
-        file_path = os.path.join(directory, VARIANT_5_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, self.embedding_directory + '/' + url.replace('/', '_') + '.txt')
 
         with open(file_path, 'r') as reader:
             data = json.loads(reader.read())
