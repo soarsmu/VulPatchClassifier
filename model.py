@@ -416,14 +416,6 @@ class VariantFiveClassifier(nn.Module):
 
         return x
 
-    def freeze_codebert(self):
-        if not isinstance(self, nn.DataParallel):
-            for param in self.code_bert.parameters():
-                param.requires_grad = False
-        else:
-            for param in self.module.code_bert.parameters():
-                param.requires_grad = False
-
 class VariantFiveFineTuneClassifier(nn.Module):
     def __init__(self):
         super(VariantFiveFineTuneClassifier, self).__init__()
@@ -435,6 +427,14 @@ class VariantFiveFineTuneClassifier(nn.Module):
         removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask).last_hidden_state[:, 0, :]
         out = self.classifier(added_embeddings, removed_embeddings)
         return out
+
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            for param in self.code_bert.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
 
 
 class VariantEightClassifier(nn.Module):
