@@ -416,6 +416,13 @@ class VariantFiveClassifier(nn.Module):
 
         return x
 
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            for param in self.code_bert.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
 
 class VariantFiveFineTuneClassifier(nn.Module):
     def __init__(self):

@@ -6,17 +6,18 @@ import torch
 import tqdm
 from torch import cuda
 from torch import nn as nn
-from model import VariantTwoFineTuneClassifier
+from model import VariantFiveFineTuneClassifier
 
 directory = os.path.dirname(os.path.abspath(__file__))
+
+EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_5'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_5_finetuned_model.sav'
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 
-EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_2'
-FINE_TUNED_MODEL_PATH = 'model/patch_variant_2_finetuned_model.sav'
 
-CODE_LINE_LENGTH = 256
+CODE_LINE_LENGTH = 512
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -49,8 +50,9 @@ def get_input_and_mask(tokenizer, code_list):
     return inputs.data['input_ids'], inputs.data['attention_mask']
 
 
-def get_file_embeddings(code_list, tokenizer, code_bert):
+def get_commit_embeddings(code_list, tokenizer, code_bert):
     # process all lines in one
+
     input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
     with torch.no_grad():
@@ -61,20 +63,20 @@ def get_file_embeddings(code_list, tokenizer, code_bert):
     return embeddings
 
 
-def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
-    code_embeddings = get_file_embeddings(code_list, tokenizer, code_bert)
+def write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert):
+    removed_embeddings = get_commit_embeddings(removed_code_list, tokenizer, code_bert)
+    added_embeddings = get_commit_embeddings(added_code_list, tokenizer, code_bert)
 
-    url_to_embeddings = {}
+    url_to_removed_embedding = {}
+    url_to_added_embedding = {}
+
     for index, url in enumerate(url_list):
-        if url not in url_to_embeddings:
-            url_to_embeddings[url] = []
-        url_to_embeddings[url].append(code_embeddings[index])
+        url_to_removed_embedding[url] = removed_embeddings[index]
+        url_to_added_embedding[url] = added_embeddings[index]
 
     url_to_data = {}
-    for url, embeddings in url_to_embeddings.items():
-        data = {}
-        embeddings = url_to_embeddings[url]
-        data['embedding'] = embeddings
+    for url, removed_embedding in url_to_removed_embedding.items():
+        data = {'before': removed_embedding, 'after': url_to_added_embedding[url]}
         url_to_data[url] = data
     for url, data in url_to_data.items():
         file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
@@ -83,7 +85,7 @@ def write_embeddings_to_files(code_list, url_list, tokenizer, code_bert):
 
 def get_data():
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
-    model = VariantTwoFineTuneClassifier()
+    model = VariantFiveFineTuneClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
@@ -114,26 +116,29 @@ def get_data():
         diff = item[3]
 
         if url not in url_to_diff:
-            url_to_diff[url] = []
+            url_to_diff[url] = ''
 
-        url_to_diff[url].append(diff)
+        url_to_diff[url] = url_to_diff[url] + diff + '\n'
 
-    code_list = []
     url_list = []
-    for url, diff_list in tqdm.tqdm(url_to_diff.items()):
-        for i, diff in enumerate(diff_list):
-            removed_code = get_code_version(diff, False)
-            added_code = get_code_version(diff, True)
-            code = removed_code + tokenizer.sep_token + added_code
-            code_list.append(code)
-            url_list.append(url)
+    removed_code_list = []
+    added_code_list = []
+    for url, diff in tqdm.tqdm(url_to_diff.items()):
+        removed_code = tokenizer.sep_token + get_code_version(diff, False)
+        added_code = tokenizer.sep_token + get_code_version(diff, True)
 
-        if len(url_list) >= 200:
-            write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
-            code_list = []
+        removed_code_list.append(removed_code)
+        added_code_list.append(added_code)
+
+        url_list.append(url)
+
+        if len(url_list) >= 100:
+            write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
+            removed_code_list = []
+            added_code_list = []
             url_list = []
 
-    write_embeddings_to_files(code_list, url_list, tokenizer, code_bert)
+    write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert)
 
 
 if __name__ == '__main__':

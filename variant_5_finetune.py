@@ -21,12 +21,16 @@ import preprocess_variant_5
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 BEST_MODEL_PATH = 'model/patch_variant_5_finetune_best_model.sav'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_5_finetuned_model.sav'
+
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
 commit_code_folder_path = os.path.join(directory, 'commit_code')
 
 model_folder_path = os.path.join(directory, 'model')
+
+FINETUNE_EPOCH = 1
 
 NUMBER_OF_EPOCHS = 15
 TRAIN_BATCH_SIZE = 4
@@ -179,6 +183,13 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         if early_stopping.early_stop:
             print("Early stopping")
             break
+
+        if epoch + 1 == FINETUNE_EPOCH:
+            torch.save(model.state_dict(), FINE_TUNED_MODEL_PATH)
+            if not isinstance(model, nn.DataParallel):
+                model.freeze_codebert()
+            else:
+                model.module.freeze_codebert()
 
     return model
 
