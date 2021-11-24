@@ -16,7 +16,7 @@ dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 
 
-CODE_LINE_LENGTH = 512
+CODE_LINE_LENGTH = 256
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")

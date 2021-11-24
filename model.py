@@ -472,3 +472,36 @@ class VariantEightClassifier(nn.Module):
         out = self.out_proj(x)
 
         return out
+
+
+class VariantSixFineTuneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantSixFineTuneClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+        self.classifier = VariantSixClassifier()
+
+    def forward(self, added_input_list_batch, added_mask_list_batch, removed_input_list_batch, removed_mask_list_batch):
+        d1, d2, d3 = added_input_list_batch.shape
+        added_input_list_batch = torch.reshape(added_input_list_batch, (d1 * d2, d3))
+        added_mask_list_batch = torch.reshape(added_mask_list_batch, (d1 * d2, d3))
+        added_embeddings = self.code_bert(input_ids=added_input_list_batch, attention_mask=added_mask_list_batch).last_hidden_state[:, 0, :]
+        added_embeddings = torch.reshape(added_embeddings, (d1, d2, self.HIDDEN_DIM))
+
+        removed_input_list_batch = torch.reshape(removed_input_list_batch, (d1 * d2, d3))
+        removed_mask_list_batch = torch.reshape(removed_mask_list_batch, (d1 * d2, d3))
+        removed_embeddings = self.code_bert(input_ids=removed_input_list_batch, attention_mask=removed_mask_list_batch).last_hidden_state[:, 0, :]
+        removed_embeddings = torch.reshape(removed_embeddings, (d1, d2, self.HIDDEN_DIM))
+
+        out = self.classifier(added_embeddings, removed_embeddings)
+
+        return out
+
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            for param in self.code_bert.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
+
