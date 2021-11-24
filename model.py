@@ -159,6 +159,14 @@ class VariantTwoFineTuneClassifier(nn.Module):
 
         return out
 
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            for param in self.code_bert.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
+
 
 class VariantSixClassifier(nn.Module):
     def __init__(self):

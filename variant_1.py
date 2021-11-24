@@ -26,7 +26,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_1_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_1_finetune_1_epoch_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 TRAIN_BATCH_SIZE = 128
