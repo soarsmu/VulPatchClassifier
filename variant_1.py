@@ -20,6 +20,8 @@ from tqdm import tqdm
 # dataset_name = 'huawei_sub_dataset.csv'
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
+EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_1'
+
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -222,11 +224,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-
-    training_set = VariantOneDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantOneDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantOneDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantOneDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantOneDataset(train_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    val_set = VariantOneDataset(val_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_java_set = VariantOneDataset(test_java_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_python_set = VariantOneDataset(test_python_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_java_generator = DataLoader(val_set, **VALIDATION_PARAMS)

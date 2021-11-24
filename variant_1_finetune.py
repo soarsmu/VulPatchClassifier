@@ -127,12 +127,6 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                                    verbose=True, path=BEST_MODEL_PATH)
 
     for epoch in range(number_of_epochs):
-        if epoch == FINETUNE_EPOCH:
-            torch.save(model.state_dict(), FINE_TUNED_MODEL_PATH)
-            if not isinstance(model, nn.DataParallel):
-                model.freeze_codebert()
-            else:
-                model.module.freeze_codebert()
         model.train()
         total_loss = 0
         current_batch = 0
@@ -192,7 +186,14 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
             print("Early stopping")
             break
 
+        if epoch + 1 == FINETUNE_EPOCH:
+            torch.save(model.state_dict(), FINE_TUNED_MODEL_PATH)
+            if not isinstance(model, nn.DataParallel):
+                model.freeze_codebert()
+            else:
+                model.module.freeze_codebert()
     return model
+
 
 def retrieve_patch_data(all_data, all_label, all_url):
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
