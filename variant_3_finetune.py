@@ -56,7 +56,7 @@ NUMBER_OF_LABELS = 2
 tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 empty_code = tokenizer.sep_token + ''
 inputs = tokenizer([empty_code], padding=True, max_length=256, truncation=True, return_tensors="pt")
-EMPTY_INPUT, EMPTY_MASK = inputs.data['input_ids'][0], inputs.data['attention_mask'][0]
+EMPTY_INPUT, EMPTY_MASK = inputs.data['input_ids'], inputs.data['attention_mask']
 
 
 def find_max_length(arr):
