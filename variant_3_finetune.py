@@ -47,7 +47,7 @@ device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
 false_cases = []
-CODE_LENGTH = 512
+CODE_LENGTH = 256
 HIDDEN_DIM = 768
 
 NUMBER_OF_LABELS = 2
@@ -55,9 +55,8 @@ NUMBER_OF_LABELS = 2
 
 tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 empty_code = tokenizer.sep_token + ''
-inputs = tokenizer([empty_code], padding=True, max_length=256, truncation=True, return_tensors="pt")
-EMPTY_INPUT, EMPTY_MASK = inputs.data['input_ids'], inputs.data['attention_mask']
-
+inputs = tokenizer(empty_code, return_tensors="pt", padding='max_length', truncation=True, max_length=CODE_LENGTH)
+EMPTY_INPUT, EMPTY_MASK = inputs.data['input_ids'][0], inputs.data['attention_mask'][0]
 
 def find_max_length(arr):
     max_len = 0
