@@ -28,6 +28,16 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
+
+VARIANT_ONE_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_1'
+VARIANT_TWO_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_2'
+VARIANT_THREE_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_3'
+VARIANT_FOUR_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_4'
+VARIANT_FIVE_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_5'
+VARIANT_SIX_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_6'
+VARIANT_SEVEN_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_7'
+
+
 VARIANT_ONE_MODEL_PATH = 'model/patch_variant_1_finetune_1_epoch_best_model.sav'
 VARIANT_TWO_MODEL_PATH = 'model/patch_variant_2_finetune_1_epoch_best_model.sav'
 VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_best_model.sav'
@@ -68,7 +78,7 @@ def infer_variant_1(partition, result_file_path):
     model.to(device)
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantOneDataset(ids, id_to_label, id_to_url)
+    dataset = VariantOneDataset(ids, id_to_label, id_to_url, VARIANT_ONE_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS)
 
     precision, recall, f1, auc, urls, probs = variant_1.predict_test_data(model, generator, device, need_prob=True)
@@ -97,7 +107,7 @@ def infer_variant_2(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_TWO_MODEL_PATH))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantTwoDataset(ids, id_to_label, id_to_url)
+    dataset = VariantTwoDataset(ids, id_to_label, id_to_url, VARIANT_TWO_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS)
 
     precision, recall, f1, auc, urls, probs = variant_2.predict_test_data(model, generator, device, need_prob=True)
@@ -153,7 +163,7 @@ def infer_variant_5(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_FIVE_MODEL_PATH))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantFiveDataset(ids, id_to_label, id_to_url)
+    dataset = VariantFiveDataset(ids, id_to_label, id_to_url, VARIANT_FIVE_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS)
 
     precision, recall, f1, auc, urls, probs = variant_5.predict_test_data(model, generator, device, need_prob=True)
@@ -181,7 +191,7 @@ def infer_variant_6(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_SIX_MODEL_PATH))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantSixDataset(ids, id_to_label, id_to_url)
+    dataset = VariantSixDataset(ids, id_to_label, id_to_url, VARIANT_SIX_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS)
 
     precision, recall, f1, auc, urls, probs = variant_6.predict_test_data(model, generator, device, need_prob=True)
