@@ -83,13 +83,19 @@ def custom_collate(batch):
     for i in range(len(batch)):
         input = torch.LongTensor(batch[i][2]).to(device)
         j, k = input.size(0), input.size(1)
-        input_padding = EMPTY_INPUT.repeat(max_inputs - j, 1).to(device)
-        input_features[i] = torch.cat([input, input_padding])
+        if max_inputs - j > 0:
+            input_padding = EMPTY_INPUT.repeat(max_inputs - j, 1).to(device)
+            input_features[i] = torch.cat([input, input_padding])
+        else:
+            input_features[i] = input
 
         mask = torch.LongTensor(batch[i][3]).to(device)
         j, k = mask.size(0), mask.size(1)
-        mask_padding = EMPTY_MASK.repeat(max_mask - j, 1).to(device)
-        mask_features[i] = torch.cat([mask, mask_padding])
+        if max_mask - j > 0:
+            mask_padding = EMPTY_MASK.repeat(max_mask - j, 1).to(device)
+            mask_features[i] = torch.cat([mask, mask_padding])
+        else:
+            mask_features = mask
 
     label = torch.tensor(label).to(device)
 
