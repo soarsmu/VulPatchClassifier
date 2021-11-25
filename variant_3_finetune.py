@@ -82,13 +82,13 @@ def custom_collate(batch):
     mask_features = EMPTY_MASK
 
     for i in range(len(batch)):
-        input = torch.FloatTensor(batch[i][2]).to(device)
+        input = torch.LongTensor(batch[i][2]).to(device)
         j, k = input.size(0), input.size(1)
         input_features[i] = torch.cat(
             [input,
              EMPTY_INPUT.repeat((max_inputs - j, 1), device=device)])
 
-        mask = torch.FloatTensor(batch[i][3]).to(device)
+        mask = torch.LongTensor(batch[i][3]).to(device)
         j, k = mask.size(0), mask.size(1)
         mask_features[i] = torch.cat(
             [mask,
@@ -96,7 +96,7 @@ def custom_collate(batch):
 
     label = torch.tensor(label).to(device)
 
-    return id, url, input_features.float(), mask_features.float(), label.long()
+    return id, url, input_features.long(), mask_features.long(), label.long()
 
 
 def predict_test_data(model, testing_generator, device, need_prob=False):

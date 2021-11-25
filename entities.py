@@ -420,7 +420,6 @@ class VariantThreeFineTuneDataset(Dataset):
         self.id_to_input_list = id_to_input_list
         self.id_to_mask_list = id_to_mask_list
 
-        self.max_data_length = 5
     def __len__(self):
         return len(self.list_IDs)
 
