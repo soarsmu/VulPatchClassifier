@@ -241,18 +241,19 @@ class VariantFiveDataset(Dataset):
 
 
 class VariantThreeDataset(Dataset):
-    def __init__(self, list_IDs, labels, id_to_url):
+    def __init__(self, list_IDs, labels, id_to_url, embedding_directory):
         self.list_IDs = list_IDs
         self.labels = labels
         self.id_to_url = id_to_url
-        self.max_data_length = 5
+        self.embedding_directory = embedding_directory
+
     def __len__(self):
         return len(self.list_IDs)
 
     def __getitem__(self, index):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
-        file_path = os.path.join(directory, VARIANT_3_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, self.embedding_directory + '/' + url.replace('/', '_') + '.txt')
 
         with open(file_path, 'r') as reader:
             data = json.loads(reader.read())
@@ -410,3 +411,26 @@ class VariantSixFineTuneDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, added_input_list, added_mask_list, removed_input_list, removed_mask_list, y
+
+class VariantThreeFineTuneDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url, id_to_input_list, id_to_mask_list):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.id_to_input_list = id_to_input_list
+        self.id_to_mask_list = id_to_mask_list
+
+        self.max_data_length = 5
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+
+        input_list = self.id_to_input_list[id]
+        mask_list = self.id_to_mask_list[id]
+
+        y = self.labels[id]
+
+        return int(id), url, input_list, mask_list, y

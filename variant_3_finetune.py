@@ -1,92 +1,125 @@
-from transformers import RobertaTokenizer, RobertaModel
 import torch
 from torch import nn as nn
 import os
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from torch.nn import functional as F
 from torch import cuda
 from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantTwoFineTuneDataset
-from model import VariantTwoFineTuneClassifier
+from entities import VariantThreeFineTuneDataset
+from model import VariantThreeFineTuneClassifier
 from pytorchtools import EarlyStopping
-from tqdm import tqdm
 import pandas as pd
+from tqdm import tqdm
+import utils
+from transformers import RobertaTokenizer
+import preprocess_variant_3
 import preprocess_variant_1
 
-
-dataset_name = 'huawei_sub_dataset.csv'
 # dataset_name = 'ase_dataset_sept_19_2021.csv'
-
-BEST_MODEL_PATH = 'model/patch_variant_2_finetune_best_model.sav'
-FINE_TUNED_MODEL_PATH = 'model/patch_variant_2_finetuned_model.sav'
-
+dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
-
-commit_code_folder_path = os.path.join(directory, 'commit_code')
 
 model_folder_path = os.path.join(directory, 'model')
 
+BEST_MODEL_PATH = 'model/patch_variant_3_finetune_best_model.sav'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_3_finetuned_model.sav'
+
 FINETUNE_EPOCH = 1
 
-LIMIT_FILE_COUNT = 5
-
-NUMBER_OF_EPOCHS = 1
-TRAIN_BATCH_SIZE = 8
-VALIDATION_BATCH_SIZE = 32
-TEST_BATCH_SIZE = 32
+NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TRAIN_BATCH_SIZE = 4
+VALIDATION_BATCH_SIZE = 128
+TEST_BATCH_SIZE = 128
+
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
 
 LEARNING_RATE = 1e-5
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
-random_seed = 109
-torch.manual_seed(random_seed)
-torch.cuda.manual_seed(random_seed)
-torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
-CODE_LENGTH = 256
+false_cases = []
+CODE_LENGTH = 512
 HIDDEN_DIM = 768
-HIDDEN_DIM_DROPOUT_PROB = 0.3
+
 NUMBER_OF_LABELS = 2
 
 
-def get_input_and_mask(tokenizer, code):
-    inputs = tokenizer(code, padding='max_length', max_length=CODE_LENGTH, truncation=True, return_tensors="pt")
+tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+empty_code = tokenizer.sep_token + ''
+inputs = tokenizer([empty_code], padding=True, max_length=256, truncation=True, return_tensors="pt")
+EMPTY_INPUT, EMPTY_MASK = inputs.data['input_ids'][0], inputs.data['attention_mask'][0]
 
-    return inputs.data['input_ids'], inputs.data['attention_mask']
+
+def find_max_length(arr):
+    max_len = 0
+    for elem in arr:
+        if len(elem) > max_len:
+            max_len = len(elem)
+    return max_len
+
+
+def custom_collate(batch):
+    id, url, input_list, mask_list, label = zip(*batch)
+
+    # before: list embeddings of files
+    max_inputs = find_max_length(input_list)
+    if max_inputs < 5:
+        max_inputs = 5
+    input_features = torch.zeros((len(batch), EMPTY_INPUT, 768))
+
+    max_mask = find_max_length(mask_list)
+    if max_mask < 5:
+        max_mask = 5
+    mask_features = torch.zeros((len(batch), EMPTY_MASK, 768))
+
+    for i in range(len(batch)):
+        input = torch.FloatTensor(batch[i][2]).to(device)
+        j, k = input.size(0), input.size(1)
+        input_features[i] = torch.cat(
+            [input,
+             torch.zeros((max_inputs - j, k), device=device)])
+
+        mask = torch.FloatTensor(batch[i][3]).to(device)
+        j, k = mask.size(0), mask.size(1)
+        mask_features[i] = torch.cat(
+            [mask,
+             torch.zeros((max_mask - j, k), device=device)])
+
+    label = torch.tensor(label).to(device)
+
+    return id, url, input_features.float(), mask_features.float(), label.long()
 
 
 def predict_test_data(model, testing_generator, device, need_prob=False):
-    print("Testing...")
     y_pred = []
     y_test = []
-    urls = []
     probs = []
-    model.eval()
+    urls = []
     with torch.no_grad():
-        for id_batch, url_batch, input_list_batch, mask_list_batch, label_batch in tqdm(testing_generator):
-            input_list_batch, mask_list_batch, label_batch \
-                = input_list_batch.to(device), mask_list_batch.to(device), label_batch.to(device)
+        model.eval()
+        for ids, url, input_batch, mask_batch, label_batch in tqdm(testing_generator):
+            input_batch, mask_batch, label_batch = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
+            outs = model(input_batch, mask_batch)
 
-            outs = model(input_list_batch, mask_list_batch)
             outs = F.softmax(outs, dim=1)
+
             y_pred.extend(torch.argmax(outs, dim=1).tolist())
             y_test.extend(label_batch.tolist())
             probs.extend(outs[:, 1].tolist())
-            urls.extend(list(url_batch))
+            urls.extend(list(url))
+
         precision = metrics.precision_score(y_pred=y_pred, y_true=y_test)
         recall = metrics.recall_score(y_pred=y_pred, y_true=y_test)
         f1 = metrics.f1_score(y_pred=y_pred, y_true=y_test)
-
         try:
             auc = metrics.roc_auc_score(y_true=y_test, y_score=probs)
         except Exception:
@@ -102,24 +135,25 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
 def get_avg_validation_loss(model, validation_generator, loss_function):
     validation_loss = 0
     with torch.no_grad():
-        for id_batch, url_batch, input_list_batch, mask_list_batch, label_batch in validation_generator:
-            input_list_batch, mask_list_batch, label_batch \
-                = input_list_batch.to(device), mask_list_batch.to(device), label_batch.to(device)
-            outs = model(input_list_batch, mask_list_batch)
+        for id_batch, url_batch, input_batch, mask_batch, label_batch in validation_generator:
+            input_batch, mask_batch, label_batch \
+                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
+            outs = model(input_batch, mask_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             validation_loss += loss
+
+
 
     avg_val_los = validation_loss / len(validation_generator)
 
     return avg_val_los
 
 
-def train(model, learning_rate, number_of_epochs, training_generator, val_generator,
-          test_java_generator, test_python_generator):
+def train(model, learning_rate, number_of_epochs, training_generator, val_generator, test_java_generator, test_python_generator):
     loss_function = nn.NLLLoss()
     optimizer = AdamW(model.parameters(), lr=learning_rate)
-    num_training_steps = number_of_epochs * len(training_generator)
+    num_training_steps = NUMBER_OF_EPOCHS * len(training_generator)
     lr_scheduler = get_scheduler(
         "linear",
         optimizer=optimizer,
@@ -135,10 +169,10 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, input_list_batch, mask_list_batch, label_batch in training_generator:
-            input_list_batch, mask_list_batch, label_batch \
-                = input_list_batch.to(device), mask_list_batch.to(device), label_batch.to(device)
-            outs = model(input_list_batch, mask_list_batch)
+        for id_batch, url_batch, input_batch, mask_batch, label_batch in training_generator:
+            input_batch, mask_batch, label_batch \
+                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
+            outs = model(input_batch, mask_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -154,17 +188,16 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                                                                                     np.average(train_losses)))
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
-        train_losses = []
 
+        train_losses = []
         model.eval()
 
-        # print("Calculating validation loss...")
-        # val_loss = get_avg_validation_loss(model, val_generator, loss_function)
-        # print("Average validation loss of this iteration: {}".format(val_loss))
-        # print("-" * 32)
-        #
-        # early_stopping(val_loss, model)
-        #
+        print("Calculating validation loss...")
+        val_loss = get_avg_validation_loss(model, val_generator, loss_function)
+        print("Average validation loss of this iteration: {}".format(val_loss))
+
+        early_stopping(val_loss, model)
+
         # print("Result on Java testing dataset...")
         # precision, recall, f1, auc = predict_test_data(model=model,
         #                                                testing_generator=test_java_generator,
@@ -197,54 +230,21 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
                 model.freeze_codebert()
             else:
                 model.module.freeze_codebert()
+
     return model
-
-
-def retrieve_patch_data(all_data, all_label, all_url):
-    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
-
-    print("Preparing tokenizer data...")
-
-    id_to_label = {}
-    id_to_url = {}
-    id_to_input_list = {}
-    id_to_mask_list = {}
-    for i, file_list in tqdm(enumerate(all_data)):
-        code_list = []
-
-        for count, file in enumerate(file_list):
-            if count >= LIMIT_FILE_COUNT:
-                continue
-
-            added_code = preprocess_variant_1.get_code_version(diff=file, added_version=True)
-            deleted_code = preprocess_variant_1.get_code_version(diff=file, added_version=False)
-
-            code = added_code + tokenizer.sep_token + deleted_code
-            code_list.append(code)
-
-        # padding
-        while len(code_list) < 5:
-            code_list.append(tokenizer.sep_token)
-
-        input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
-        id_to_input_list[i] = input_ids_list
-        id_to_mask_list[i] = mask_list
-        id_to_label[i] = all_label[i]
-        id_to_url[i] = all_url[i]
-
-    return id_to_input_list, id_to_mask_list, id_to_label, id_to_url
 
 
 def get_data():
     print("Reading dataset...")
     df = pd.read_csv(dataset_name)
-    df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL']]
+    df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD', 'filename']]
     items = df.to_numpy().tolist()
 
     url_to_diff = {}
     url_to_partition = {}
     url_to_label = {}
     url_to_pl = {}
+
     for item in items:
         commit_id = item[0]
         repo = item[1]
@@ -257,7 +257,7 @@ def get_data():
         if url not in url_to_diff:
             url_to_diff[url] = []
 
-        url_to_diff[url].append(diff)
+        url_to_diff[url].extend(preprocess_variant_3.get_hunk_from_diff(diff))
         url_to_partition[url] = partition
         url_to_label[url] = label
         url_to_pl[url] = pl
@@ -266,8 +266,6 @@ def get_data():
     label_train, label_val, label_test_java, label_test_python = [], [], [], []
     url_train, url_val, url_test_java, url_test_python = [], [], [], []
 
-    print(len(url_to_diff.keys()))
-    # diff here is diff list
     for key in url_to_diff.keys():
         url = key
         diff = url_to_diff[key]
@@ -309,6 +307,40 @@ def get_data():
     return patch_data, label_data, url_data
 
 
+def get_input_and_mask(tokenizer, code):
+    inputs = tokenizer(code, padding='max_length', max_length=CODE_LENGTH, truncation=True, return_tensors="pt")
+
+    return inputs.data['input_ids'], inputs.data['attention_mask']
+
+
+def retrieve_patch_data(all_data, all_label, all_url):
+    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+
+    print("Preparing tokenizer data...")
+
+    id_to_label = {}
+    id_to_url = {}
+    id_to_input_list = {}
+    id_to_mask_list = {}
+    for i, hunk_list in tqdm(enumerate(all_data)):
+        code_list = []
+
+        for count, file in enumerate(hunk_list):
+            added_code = preprocess_variant_3.get_code_version(diff=file, added_version=True)
+            deleted_code = preprocess_variant_3.get_code_version(diff=file, added_version=False)
+
+            code = added_code + tokenizer.sep_token + deleted_code
+            code_list.append(code)
+
+        input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
+        id_to_input_list[i] = input_ids_list
+        id_to_mask_list[i] = mask_list
+        id_to_label[i] = all_label[i]
+        id_to_url[i] = all_url[i]
+
+    return id_to_input_list, id_to_mask_list, id_to_label, id_to_url
+
+
 def do_train():
     print("Dataset name: {}".format(dataset_name))
     print("Saving model to: {}".format(BEST_MODEL_PATH))
@@ -341,17 +373,17 @@ def do_train():
     id_to_input_list, id_to_mask_list, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
     print("Finish preparing commit patch data")
 
-    training_set = VariantTwoFineTuneDataset(train_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
-    val_set = VariantTwoFineTuneDataset(val_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
-    test_java_set = VariantTwoFineTuneDataset(test_java_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
-    test_python_set = VariantTwoFineTuneDataset(test_python_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
+    training_set = VariantThreeFineTuneDataset(train_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
+    val_set = VariantThreeFineTuneDataset(val_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
+    test_java_set = VariantThreeFineTuneDataset(test_java_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
+    test_python_set = VariantThreeFineTuneDataset(test_python_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = VariantTwoFineTuneClassifier()
+    model = VariantThreeFineTuneClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")

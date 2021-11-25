@@ -258,6 +258,33 @@ class VariantThreeClassifier(nn.Module):
         return out
 
 
+class VariantThreeFineTuneClassifier(nn.Module):
+    def __init__(self):
+        super(VariantThreeFineTuneClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+        self.classifier = VariantTwoClassifier()
+
+    def forward(self, input_list_batch, mask_list_batch):
+        d1, d2, d3 = input_list_batch.shape
+        input_list_batch = torch.reshape(input_list_batch, (d1 * d2, d3))
+        mask_list_batch = torch.reshape(mask_list_batch, (d1 * d2, d3))
+        embeddings = self.code_bert(input_ids=input_list_batch, attention_mask=mask_list_batch).last_hidden_state[:, 0, :]
+        embeddings = torch.reshape(embeddings, (d1, d2, self.HIDDEN_DIM))
+
+        out = self.classifier(embeddings)
+
+        return out
+
+    def freeze_codebert(self):
+        if not isinstance(self, nn.DataParallel):
+            for param in self.code_bert.parameters():
+                param.requires_grad = False
+        else:
+            for param in self.module.code_bert.parameters():
+                param.requires_grad = False
+
+
 class VariantSevenClassifier(nn.Module):
     """An 1D Convulational Neural Network for Sentence Classification."""
 
