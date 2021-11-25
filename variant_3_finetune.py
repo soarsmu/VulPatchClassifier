@@ -169,7 +169,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, input_batch, mask_batch, label_batch in training_generator:
+        for index, (id_batch, url_batch, input_batch, mask_batch, label_batch) in enumerate(training_generator):
             input_batch, mask_batch, label_batch \
                 = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
             outs = model(input_batch, mask_batch)
@@ -184,8 +184,8 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
             current_batch += 1
             if current_batch % 50 == 0:
-                print("Train commit iter {}, total loss {}, average loss {}".format(current_batch, np.sum(train_losses),
-                                                                                    np.average(train_losses)))
+                print("Train commit iter {}, commit {}/{} total loss {}, average loss {}"
+                      .format(current_batch, (index + 1) * TRAIN_BATCH_SIZE, len(training_generator), np.sum(train_losses), np.average(train_losses)))
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
 
@@ -378,10 +378,10 @@ def do_train():
     test_java_set = VariantThreeFineTuneDataset(test_java_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
     test_python_set = VariantThreeFineTuneDataset(test_python_ids, id_to_label, id_to_url, id_to_input_list, id_to_mask_list)
 
-    training_generator = DataLoader(training_set, **TRAIN_PARAMS)
-    val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
-    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
-    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
+    training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
+    val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
+    test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
+    test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
     model = VariantThreeFineTuneClassifier()
 
