@@ -74,25 +74,25 @@ def custom_collate(batch):
     max_inputs = find_max_length(input_list)
     if max_inputs < 5:
         max_inputs = 5
-    input_features = torch.zeros((len(batch), EMPTY_INPUT, 768))
+    input_features = EMPTY_INPUT
 
     max_mask = find_max_length(mask_list)
     if max_mask < 5:
         max_mask = 5
-    mask_features = torch.zeros((len(batch), EMPTY_MASK, 768))
+    mask_features = EMPTY_MASK
 
     for i in range(len(batch)):
         input = torch.FloatTensor(batch[i][2]).to(device)
         j, k = input.size(0), input.size(1)
         input_features[i] = torch.cat(
             [input,
-             torch.zeros((max_inputs - j, k), device=device)])
+             EMPTY_INPUT.repeat((max_inputs - j, 1), device=device)])
 
         mask = torch.FloatTensor(batch[i][3]).to(device)
         j, k = mask.size(0), mask.size(1)
         mask_features[i] = torch.cat(
             [mask,
-             torch.zeros((max_mask - j, k), device=device)])
+             EMPTY_MASK.repeat((max_mask - j, 1), device=device)])
 
     label = torch.tensor(label).to(device)
 
