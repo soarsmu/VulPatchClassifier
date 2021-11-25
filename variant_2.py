@@ -20,10 +20,9 @@ dataset_name = 'ase_dataset_sept_19_2021.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_2'
+BEST_MODEL_PATH = 'model/patch_variant_2_finetune_1_epoch_best_model.sav'
 
 model_folder_path = os.path.join(directory, 'model')
-
-BEST_MODEL_PATH = 'model/patch_variant_2_finetune_2_epoch_best_model.sav'
 
 
 NUMBER_OF_EPOCHS = 60

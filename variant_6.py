@@ -21,7 +21,8 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_6_best_model.sav'
+EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_6'
+BEST_MODEL_PATH = 'model/patch_variant_6_finetune_1_epoch_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
@@ -39,16 +40,6 @@ LEARNING_RATE = 1e-5
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
-
-false_cases = []
-CODE_LENGTH = 512
-HIDDEN_DIM = 768
-
-NUMBER_OF_LABELS = 2
-
-
-# model_path_prefix = model_folder_path + '/patch_variant_6_16112021_model_'
-
 
 def predict_test_data(model, testing_generator, device, need_prob=False):
     y_pred = []
@@ -213,10 +204,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-    training_set = VariantSixDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantSixDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantSixDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantSixDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantSixDataset(train_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    val_set = VariantSixDataset(val_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_java_set = VariantSixDataset(test_java_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
+    test_python_set = VariantSixDataset(test_python_ids, id_to_label, id_to_url, EMBEDDINGS_DIRECTORY)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS)
