@@ -28,11 +28,11 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-VARIANT_ONE_MODEL_PATH = 'model/patch_variant_1_best_model.sav'
-VARIANT_TWO_MODEL_PATH = 'model/patch_variant_2_best_model.sav'
+VARIANT_ONE_MODEL_PATH = 'model/patch_variant_1_finetune_1_epoch_best_model.sav'
+VARIANT_TWO_MODEL_PATH = 'model/patch_variant_2_finetune_1_epoch_best_model.sav'
 VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_best_model.sav'
-VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_best_model.sav'
-VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_best_model.sav'
+VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_finetune_1_epoch_best_model.sav'
+VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_finetune_1_epoch_best_model.sav'
 VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
 
 TEST_BATCH_SIZE = 128
@@ -369,4 +369,25 @@ def get_combined_ensemble_model():
     print("AUC on Python of ensemble model: {}".format(auc))
 
 
-get_combined_ensemble_model()
+print("Inferring variant 1...")
+infer_variant_1('val', 'prob_variant_1_finetune_1_epoch_val.txt')
+infer_variant_1('test_java', 'prob_variant_1_finetune_1_epoch_test_java.txt')
+infer_variant_1('test_python', 'prob_variant_1_finetune_1_epoch_test_python.txt')
+print('-' * 64)
+
+print("Inferring variant 2...")
+infer_variant_2('val', 'prob_variant_2_finetune_1_epoch_val.txt')
+infer_variant_2('test_java', 'prob_variant_2_finetune_1_epoch_test_java.txt')
+infer_variant_2('test_python', 'prob_variant_2_finetune_1_epoch_test_python.txt')
+print('-' * 64)
+
+print("Inferring variant 5...")
+infer_variant_5('val', 'prob_variant_5_finetune_1_epoch_val.txt')
+infer_variant_5('test_java', 'prob_variant_5_finetune_1_epoch_test_java.txt')
+infer_variant_5('test_python', 'prob_variant_5_finetune_1_epoch_test_python.txt')
+print('-' * 64)
+
+print("Inferring variant 6...")
+infer_variant_6('val', 'prob_variant_6_finetune_1_epoch_val.txt')
+infer_variant_6('test_java', 'prob_variant_6_finetune_1_epoch_test_java.txt')
+infer_variant_6('test_python', 'prob_variant_6_finetune_1_epoch_test_python.txt')
