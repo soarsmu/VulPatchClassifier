@@ -263,7 +263,7 @@ class VariantThreeFineTuneClassifier(nn.Module):
         super(VariantThreeFineTuneClassifier, self).__init__()
         self.HIDDEN_DIM = 768
         self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
-        self.classifier = VariantTwoClassifier()
+        self.classifier = VariantThreeClassifier()
 
     def forward(self, input_list_batch, mask_list_batch):
         d1, d2, d3 = input_list_batch.shape
