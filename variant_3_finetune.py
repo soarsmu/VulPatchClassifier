@@ -73,29 +73,23 @@ def custom_collate(batch):
     max_inputs = find_max_length(input_list)
     if max_inputs < 5:
         max_inputs = 5
-    input_features = EMPTY_INPUT
+    input_features = torch.zeros((len(batch), max_inputs, CODE_LENGTH))
 
     max_mask = find_max_length(mask_list)
     if max_mask < 5:
         max_mask = 5
-    mask_features = EMPTY_MASK
+    mask_features = torch.zeros((len(batch), max_mask, CODE_LENGTH))
 
     for i in range(len(batch)):
         input = torch.LongTensor(batch[i][2]).to(device)
         j, k = input.size(0), input.size(1)
-        if max_inputs - j > 0:
-            input_padding = EMPTY_INPUT.repeat(max_inputs - j, 1).to(device)
-            input_features[i] = torch.cat([input, input_padding])
-        else:
-            input_features[i] = input
+        input_padding = EMPTY_INPUT.repeat(max_inputs - j, 1).to(device)
+        input_features[i] = torch.cat([input, input_padding])
 
         mask = torch.LongTensor(batch[i][3]).to(device)
         j, k = mask.size(0), mask.size(1)
-        if max_mask - j > 0:
-            mask_padding = EMPTY_MASK.repeat(max_mask - j, 1).to(device)
-            mask_features[i] = torch.cat([mask, mask_padding])
-        else:
-            mask_features = mask
+        mask_padding = EMPTY_MASK.repeat(max_mask - j, 1).to(device)
+        mask_features[i] = torch.cat([mask, mask_padding])
 
     label = torch.tensor(label).to(device)
 
