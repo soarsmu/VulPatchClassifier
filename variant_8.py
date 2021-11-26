@@ -30,9 +30,9 @@ TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
 LEARNING_RATE = 1e-5
 
@@ -73,18 +73,18 @@ def custom_collate(batch):
     after_features = torch.zeros((len(batch), max_after, 768))
 
     for i in range(len(batch)):
-        before = torch.FloatTensor(batch[i][2]).to(device)
+        before = torch.FloatTensor(batch[i][2])
         j, k = before.size(0), before.size(1)
         before_features[i] = torch.cat(
-            [before, torch.zeros((max_before - j, k), device=device)])
+            [before, torch.zeros((max_before - j, k))])
 
     for i in range(len(batch)):
-        after = torch.FloatTensor(batch[i][3]).to(device)
+        after = torch.FloatTensor(batch[i][3])
         j, k = after.size(0), after.size(1)
         after_features[i] = torch.cat(
-            [after, torch.zeros((max_after - j, k), device=device)])
+            [after, torch.zeros((max_after - j, k))])
 
-    label = torch.tensor(label).to(device)
+    label = torch.tensor(label)
 
     return id, url, before_features.float(), after_features.float(), label.long()
 
