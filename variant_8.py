@@ -26,9 +26,9 @@ BEST_MODEL_PATH = 'model/patch_variant_8_attention_best_model.sav'
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 32
-VALIDATION_BATCH_SIZE = 32
-TEST_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 128
+VALIDATION_BATCH_SIZE = 128
+TEST_BATCH_SIZE = 128
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
 VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
