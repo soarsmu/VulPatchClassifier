@@ -45,7 +45,7 @@ VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_best_model.sav'
 VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_finetune_1_epoch_best_model.sav'
 VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_finetune_1_epoch_best_model.sav'
 VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
-VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_attention_current_model.sav'
+VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_attention_best_model.sav'
 TEST_BATCH_SIZE = 128
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
@@ -432,9 +432,13 @@ def get_combined_ensemble_model():
 # infer_variant_6('test_java', 'prob_variant_6_finetune_1_epoch_test_java.txt')
 # infer_variant_6('test_python', 'prob_variant_6_finetune_1_epoch_test_python.txt')
 
+print("Inferring variant 7...")
+infer_variant_7('val', 'prob_variant_7_val.txt')
+infer_variant_7('test_java', 'prob_variant_7_test_java.txt')
+infer_variant_7('test_python', 'prob_variant_7_test_python.txt')
 
 print("Inferring variant 8...")
-# infer_variant_8('val', 'prob_variant_8_val.txt')
+infer_variant_8('val', 'prob_variant_8_val.txt')
 infer_variant_8('test_java', 'prob_variant_8_test_java.txt')
 infer_variant_8('test_python', 'prob_variant_8_test_python.txt')
 
