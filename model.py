@@ -3,6 +3,7 @@ import torch
 from torch import nn as nn
 import numpy as np
 from torch.nn import functional as F
+from torch.autograd import Variable
 
 class PatchClassifier(nn.Module):
     def __init__(self):
@@ -532,3 +533,89 @@ class VariantSixFineTuneClassifier(nn.Module):
             for param in self.module.code_bert.parameters():
                 param.requires_grad = False
 
+
+class EncoderRNN(nn.Module):
+    def __init__(self,
+                 emb_dim,
+                 h_dim,
+                 batch_first=True):
+        super(EncoderRNN, self).__init__()
+        self.h_dim = h_dim
+        # self.embed = nn.Embedding(v_size, emb_dim)
+        self.lstm = nn.LSTM(emb_dim,
+                            h_dim,
+                            batch_first=batch_first,
+                            bidirectional=True)
+    def init_hidden(self, b_size):
+        h0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
+        c0 = Variable(torch.zeros(1*2, b_size, self.h_dim))
+        h0 = h0.cuda()
+        c0 = c0.cuda()
+        return h0, c0
+
+    def forward(self, sentence):
+        hidden = self.init_hidden(sentence.size(0))
+        emb = sentence
+        out, hidden = self.lstm(emb, hidden)
+        out = out[:, :, :self.h_dim] + out[:, :, self.h_dim:]
+        return out
+
+
+class Attn(nn.Module):
+    def __init__(self, h_dim):
+        super(Attn, self).__init__()
+        self.h_dim = h_dim
+        self.main = nn.Sequential(nn.Linear(h_dim, 24), nn.ReLU(True),
+                                  nn.Linear(24, 1))
+
+    def forward(self, encoder_outputs):
+        b_size = encoder_outputs.size(0)
+        attn_ene = self.main(encoder_outputs.reshape(-1, self.h_dim)) # (b, s, h) -> (b * s, 1)
+        return F.softmax(attn_ene.view(b_size, -1),
+                         dim=1).unsqueeze(2)  # (b*s, 1) -> (b, s, 1)
+
+
+class AttnClassifier(nn.Module):
+    def __init__(self, h_dim, c_num):
+        super(AttnClassifier, self).__init__()
+        self.attn1 = Attn(h_dim)
+        self.attn2 = Attn(h_dim)
+        self.linear = nn.Linear(2*h_dim, h_dim)
+        self.output = nn.Linear(h_dim, c_num)
+
+    def forward(self, a_output, b_output):
+        a_attn = self.attn1(a_output)  #(b, s, 1)
+        b_attn = self.attn2(b_output) #()  #(b, s, 1)
+        a_feats = (a_output * a_attn).sum(dim=1)  # (b, s, h) -> (b, h)
+        b_feats = (b_output * b_attn).sum(dim=1)
+        feats = torch.cat((a_feats, b_feats), 1)
+        o_feats = self.linear(feats)
+        out = self.output(o_feats)
+        return F.log_softmax(out, -1) , a_attn, b_attn
+
+
+class VariantEightAttentionClassifier(nn.Module):
+    def __init__(self):
+        super(VariantEightAttentionClassifier, self).__init__()
+        self.EMBEDDING_DIM = 768
+        self.HIDDEN_DIM = 128
+        self.NUMBER_OF_LABELS = 2
+        self.before_encoder = EncoderRNN(self.EMBEDDING_DIM, self.HIDDEN_DIM)
+        self.after_encoder = EncoderRNN(self.EMBEDDING_DIM, self.HIDDEN_DIM)
+
+        self.attn1 = Attn(self.HIDDEN_DIM)
+        self.attn2 = Attn(self.HIDDEN_DIM)
+        self.linear = nn.Linear(2 * self.HIDDEN_DIM, self.HIDDEN_DIM)
+        self.output = nn.Linear(self.HIDDEN_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, before_batch, after_batch):
+        before_out = self.before_encoder(before_batch)
+        after_out = self.after_encoder(after_batch)
+        a_attn = self.attn1(after_out)  # (b, s, 1)
+        b_attn = self.attn2(before_out)  # ()  #(b, s, 1)
+        a_feats = (after_out * a_attn).sum(dim=1)  # (b, s, h) -> (b, h)
+        b_feats = (before_out * b_attn).sum(dim=1)
+        feats = torch.cat((a_feats, b_feats), 1)
+        o_feats = self.linear(feats)
+        out = self.output(o_feats)
+        return out

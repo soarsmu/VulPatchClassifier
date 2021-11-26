@@ -9,7 +9,7 @@ import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
 from entities import VariantEightDataset
-from model import VariantEightClassifier
+from model import VariantEightAttentionClassifier
 from pytorchtools import EarlyStopping
 import pandas as pd
 from tqdm import tqdm
@@ -21,7 +21,7 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_8_best_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_8_attention_best_model.sav'
 
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
@@ -262,7 +262,7 @@ def do_train():
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
-    model = VariantEightClassifier()
+    model = VariantEightAttentionClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
