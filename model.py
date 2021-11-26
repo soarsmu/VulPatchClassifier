@@ -554,7 +554,7 @@ class EncoderRNN(nn.Module):
         return h0, c0
 
     def forward(self, sentence):
-        self.lstm.flatten_parameters()
+        # self.lstm.flatten_parameters()
         hidden = self.init_hidden(sentence.size(0))
         emb = sentence
         out, hidden = self.lstm(emb, hidden)
