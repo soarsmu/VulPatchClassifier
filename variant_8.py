@@ -9,7 +9,7 @@ import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
 from entities import VariantEightDataset
-from model import VariantEightAttentionClassifier
+from model import VariantEightClassifier
 from pytorchtools import EarlyStopping
 import pandas as pd
 from tqdm import tqdm
@@ -27,8 +27,8 @@ NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
 
 TRAIN_BATCH_SIZE = 32
-VALIDATION_BATCH_SIZE = 128
-TEST_BATCH_SIZE = 128
+VALIDATION_BATCH_SIZE = 64
+TEST_BATCH_SIZE = 64
 
 TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
@@ -262,7 +262,7 @@ def do_train():
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS, collate_fn=custom_collate)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS, collate_fn=custom_collate)
 
-    model = VariantEightAttentionClassifier()
+    model = VariantEightClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
