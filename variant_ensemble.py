@@ -1,6 +1,7 @@
 import torch
 from torch import nn as nn
 import os
+import csv
 from torch.utils.data import Dataset, DataLoader
 from torch import cuda
 import pandas as pd
@@ -292,13 +293,13 @@ def read_pred_prob(file_path):
 
 def get_auc_max_ensemble():
     print("Reading result...")
-    variant_1_result = read_pred_prob('probs/prob_variant_5_finetune_1_epoch_test_python.txt')
-    variant_2_result = read_pred_prob('probs/prob_variant_6_finetune_1_epoch_test_python.txt')
-    variant_3_result = read_pred_prob('probs/prob_variant_7_test_python.txt')
-    # variant_5_result = read_pred_prob('probs/prob_variant_5_finetune_1_epoch_test_python.txt')
-    # variant_6_result = read_pred_prob('probs/prob_variant_6_finetune_1_epoch_test_python.txt')
-    # variant_7_result = read_pred_prob('probs/prob_variant_7_test_python.txt')
-    variant_8_result = read_pred_prob('probs/prob_variant_8_test_python.txt')
+    variant_1_result = read_pred_prob('probs/prob_variant_1_finetune_1_epoch_test_java.txt')
+    variant_2_result = read_pred_prob('probs/prob_variant_2_finetune_1_epoch_test_java.txt')
+    variant_3_result = read_pred_prob('probs/prob_variant_3_test_java.txt')
+    variant_5_result = read_pred_prob('probs/prob_variant_5_finetune_1_epoch_test_java.txt')
+    variant_6_result = read_pred_prob('probs/prob_variant_6_finetune_1_epoch_test_java.txt')
+    variant_7_result = read_pred_prob('probs/prob_variant_7_test_java.txt')
+    variant_8_result = read_pred_prob('probs/prob_variant_8_test_java.txt')
 
     print("Finish reading result")
 
@@ -307,16 +308,16 @@ def get_auc_max_ensemble():
     for url, prob_1 in variant_1_result.items():
         prob_2 = variant_2_result[url]
         prob_3 = variant_3_result[url]
-        # prob_5 = variant_5_result[url]
-        # prob_6 = variant_6_result[url]
-        # prob_7 = variant_7_result[url]
+        prob_5 = variant_5_result[url]
+        prob_6 = variant_6_result[url]
+        prob_7 = variant_7_result[url]
         prob_8 = variant_8_result[url]
-        url_to_max_prob[url] = mean([prob_1, prob_2, prob_3, prob_8])
-        # url_to_max_prob[url] = max([prob_1, prob_2, prob_3, prob_5, prob_6, prob_7, prob_8])
+        # url_to_max_prob[url] = mean([prob_1, prob_2, prob_3, prob_8])
+        url_to_max_prob[url] = mean([prob_1, prob_2, prob_3, prob_5, prob_6, prob_7, prob_8])
 
     url_data, label_data = utils.get_data(dataset_name)
-    url_test = url_data['test_python']
-    label_test = label_data['test_python']
+    url_test = url_data['test_java']
+    label_test = label_data['test_java']
 
     y_score = []
     y_true = []
@@ -327,6 +328,11 @@ def get_auc_max_ensemble():
     auc = metrics.roc_auc_score(y_true=y_true, y_score=y_score)
 
     print("AUC: {}".format(auc))
+
+    with open('probs/mean_prob_java.txt', 'w') as file:
+        writer = csv.writer(file)
+        for url, prob in url_to_max_prob.items():
+            writer.writerow([url, prob])
 
 
 def get_data_ensemble_model(prob_list, label_list):
@@ -359,7 +365,7 @@ def get_partition_prob_list(result_path_list, partition):
         prob_list.append(get_prob(result_list, url))
         label_list.append(label_data[partition][i])
 
-    return prob_list, label_list
+    return prob_list, label_list, url_data[partition]
 
 
 def get_combined_ensemble_model():
@@ -372,37 +378,37 @@ def get_combined_ensemble_model():
         ['variant_7_prob_train_java.txt', 'variant_7_prob_train_python.txt']
     ]
 
-    val_result_path_list = ['probs/prob_variant_5_finetune_1_epoch_val.txt',
+    val_result_path_list = ['probs/prob_variant_1_finetune_1_epoch_val.txt',
+                            'probs/prob_variant_2_finetune_1_epoch_val.txt',
+                            'probs/prob_variant_3_val.txt',
+                            'probs/prob_variant_5_finetune_1_epoch_val.txt',
                             'probs/prob_variant_6_finetune_1_epoch_val.txt',
                             'probs/prob_variant_7_val.txt',
-                            # 'probs/prob_variant_5_finetune_1_epoch_val.txt',
-                            # 'probs/prob_variant_6_finetune_1_epoch_val.txt',
-                            # 'probs/prob_variant_7_val.txt',
                             'probs/prob_variant_8_val.txt']
                             # 'variant_7_prob_val.txt']
 
-    test_java_result_path_list = ['probs/prob_variant_5_finetune_1_epoch_test_java.txt',
+    test_java_result_path_list = ['probs/prob_variant_1_finetune_1_epoch_test_java.txt',
+                                  'probs/prob_variant_2_finetune_1_epoch_test_java.txt',
+                                  'probs/prob_variant_3_test_java.txt',
+                                  'probs/prob_variant_5_finetune_1_epoch_test_java.txt',
                                   'probs/prob_variant_6_finetune_1_epoch_test_java.txt',
                                   'probs/prob_variant_7_test_java.txt',
-                                  # 'probs/prob_variant_5_finetune_1_epoch_test_java.txt',
-                                  # 'probs/prob_variant_6_finetune_1_epoch_test_java.txt',
-                                  # 'probs/prob_variant_7_test_java.txt',
                                   'probs/prob_variant_8_test_java.txt']
                                   # 'variant_7_prob_java.txt']
 
-    test_python_result_path_list = ['probs/prob_variant_5_finetune_1_epoch_test_python.txt',
+    test_python_result_path_list = ['probs/prob_variant_1_finetune_1_epoch_test_python.txt',
+                                    'probs/prob_variant_2_finetune_1_epoch_test_python.txt',
+                                    'probs/prob_variant_3_test_python.txt',
+                                    'probs/prob_variant_5_finetune_1_epoch_test_python.txt',
                                     'probs/prob_variant_6_finetune_1_epoch_test_python.txt',
                                     'probs/prob_variant_7_test_python.txt',
-                                    # 'probs/prob_variant_5_finetune_1_epoch_test_python.txt',
-                                    # 'probs/prob_variant_6_finetune_1_epoch_test_python.txt',
-                                    # 'probs/prob_variant_7_test_python.txt',
                                     'probs/prob_variant_8_test_python.txt']
                                     # 'variant_7_prob_python.txt']
 
     # train_prob_list, train_label_list = get_partition_prob_list(train_result_path_list, 'train')
-    val_prob_list, val_label_list = get_partition_prob_list(val_result_path_list, 'val')
-    java_test_prob_list, java_test_label_list = get_partition_prob_list(test_java_result_path_list, 'test_java')
-    python_test_prob_list, python_test_label_list = get_partition_prob_list(test_python_result_path_list, 'test_python')
+    val_prob_list, val_label_list, val_url_list = get_partition_prob_list(val_result_path_list, 'val')
+    java_test_prob_list, java_test_label_list, java_test_url_list = get_partition_prob_list(test_java_result_path_list, 'test_java')
+    python_test_prob_list, python_test_label_list, python_test_url_list = get_partition_prob_list(test_python_result_path_list, 'test_python')
 
     # train_ensemble_model = get_data_ensemble_model(train_prob_list, train_label_list)
     print("Training ensemble model...")
@@ -415,12 +421,21 @@ def get_combined_ensemble_model():
     auc = metrics.roc_auc_score(y_true=java_test_label_list, y_score=y_probs)
     print("AUC on Java of ensemble model: {}".format(auc))
 
+    with open('probs/ensemble_prob_java.txt', 'w') as file:
+        writer = csv.writer(file)
+        for i, url in enumerate(java_test_url_list):
+            writer.writerow([url, y_probs[i]])
+
     print("Calculate AUC on Python...")
     y_probs = val_ensemble_model.predict_proba(python_test_prob_list)
     y_probs = [prob[1] for prob in y_probs.tolist()]
     auc = metrics.roc_auc_score(y_true=python_test_label_list, y_score=y_probs)
     print("AUC on Python of ensemble model: {}".format(auc))
 
+    with open('probs/ensemble_prob_python.txt', 'w') as file:
+        writer = csv.writer(file)
+        for i, url in enumerate(python_test_url_list):
+            writer.writerow([url, y_probs[i]])
 
 # print("Inferring variant 1...")
 # infer_variant_1('val', 'prob_variant_1_finetune_1_epoch_val.txt')
@@ -450,36 +465,35 @@ def get_combined_ensemble_model():
 # infer_variant_7('test_java', 'prob_variant_7_test_java.txt')
 # infer_variant_7('test_python', 'prob_variant_7_test_python.txt')
 #
-print("Inferring variant 1...")
-infer_variant_1('val_java', 'prob_variant_1_val_java.txt')
-infer_variant_1('val_java', 'prob_variant_1_val_python.txt')
-
-print("Inferring variant 3...")
-infer_variant_3('val_java', 'prob_variant_3_val_java.txt')
-infer_variant_3('val_java', 'prob_variant_3_val_python.txt')
-
-print("Inferring variant 5...")
-infer_variant_5('val', 'prob_variant_5_val_java.txt')
-infer_variant_5('val', 'prob_variant_5_val_python.txt')
-
-print("Inferring variant 8...")
-infer_variant_8('val', 'prob_variant_8_val_java.txt')
-infer_variant_8('val', 'prob_variant_8_val_python.txt')
-
-
-print("Inferring variant 2...")
-infer_variant_2('val_java', 'prob_variant_2_val_java.txt')
-infer_variant_2('val_python', 'prob_variant_2_val_python.txt')
-
-
-print("Inferring variant 6...")
-infer_variant_6('val_java', 'prob_variant_6_val_java.txt')
-infer_variant_6('val_python', 'prob_variant_6_val_python.txt')
-
-print("Inferring variant 7...")
-infer_variant_7('val_java', 'prob_variant_7_val_java.txt')
-infer_variant_7('val_python', 'prob_variant_7_val_python.txt')
-
+# print("Inferring variant 1...")
+# infer_variant_1('val_java', 'prob_variant_1_val_java.txt')
+# infer_variant_1('val_java', 'prob_variant_1_val_python.txt')
+#
+# print("Inferring variant 3...")
+# infer_variant_3('val_java', 'prob_variant_3_val_java.txt')
+# infer_variant_3('val_java', 'prob_variant_3_val_python.txt')
+#
+# print("Inferring variant 5...")
+# infer_variant_5('val', 'prob_variant_5_val_java.txt')
+# infer_variant_5('val', 'prob_variant_5_val_python.txt')
+#
+# print("Inferring variant 8...")
+# infer_variant_8('val', 'prob_variant_8_val_java.txt')
+# infer_variant_8('val', 'prob_variant_8_val_python.txt')
+#
+#
+# print("Inferring variant 2...")
+# infer_variant_2('val_java', 'prob_variant_2_val_java.txt')
+# infer_variant_2('val_python', 'prob_variant_2_val_python.txt')
+#
+#
+# print("Inferring variant 6...")
+# infer_variant_6('val_java', 'prob_variant_6_val_java.txt')
+# infer_variant_6('val_python', 'prob_variant_6_val_python.txt')
+#
+# print("Inferring variant 7...")
+# infer_variant_7('val_java', 'prob_variant_7_val_java.txt')
+# infer_variant_7('val_python', 'prob_variant_7_val_python.txt')
 
 
 get_combined_ensemble_model()
