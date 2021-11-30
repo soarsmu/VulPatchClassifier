@@ -85,7 +85,7 @@ def train(model, learning_rate, number_of_epochs, training_generator):
             current_batch += 1
             if current_batch % 50 == 0:
                 print("Train commit iter {}, commit {}/{} total loss {}, average loss {}"
-                      .format(current_batch, (index + 1) * TRAIN_BATCH_SIZE, len(training_generator), np.sum(train_losses), np.average(train_losses)))
+                      .format(current_batch, (index + 1) * TRAIN_BATCH_SIZE, len(training_generator) * TRAIN_BATCH_SIZE, np.sum(train_losses), np.average(train_losses)))
 
         print("epoch {}, training commit loss {}".format(epoch, np.sum(train_losses)))
 
