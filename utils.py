@@ -60,7 +60,7 @@ def get_data(dataset_name):
     print("Finish reading dataset")
     url_data = {'train': url_train, 'val': url_val, 'val_java': url_val_java, 'val_python': url_val_python,
                 'test_java': url_test_java, 'test_python': url_test_python}
-    label_data = {'train': label_train, 'val': label_val, 'val_java': url_val_java, 'val_python': url_val_python,
+    label_data = {'train': label_train, 'val': label_val, 'val_java': label_val_java, 'val_python': label_val_python,
                 'test_java': label_test_java, 'test_python': label_test_python}
 
     data = {'url_data': url_data, 'label_data': label_data}

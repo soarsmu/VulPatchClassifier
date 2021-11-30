@@ -286,6 +286,31 @@ class VariantThreeFineTuneClassifier(nn.Module):
                 param.requires_grad = False
 
 
+class VariantThreeFineTuneOnlyClassifier(nn.Module):
+    def __init__(self):
+        super(VariantThreeFineTuneOnlyClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.NUMBER_OF_LABELS = 2
+
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.DENSE_DIM)
+        self.relu = nn.ReLU()
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, input_batch, mask_batch):
+        embeddings = self.code_bert(input_ids=input_batch, attention_mask=mask_batch).last_hidden_state[:, 0, :]
+
+        x = embeddings
+        x = self.drop_out(x)
+        x = self.linear(x)
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+
+        return x
+
 class VariantSevenClassifier(nn.Module):
     """An 1D Convulational Neural Network for Sentence Classification."""
 

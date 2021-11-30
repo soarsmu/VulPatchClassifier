@@ -13,8 +13,8 @@ EMBEDDING_DIRECTORY = '../embeddings/variant_3'
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
-dataset_name = 'ase_dataset_sept_19_2021.csv'
-# dataset_name = 'huawei_sub_dataset_new.csv'
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
 
 CODE_LINE_LENGTH = 256
 

@@ -174,7 +174,6 @@ class VariantOneDataset(Dataset):
         embedding = torch.FloatTensor(embedding)
 
         y = self.labels[id]
-
         return int(id), url, embedding, y
 
 
@@ -433,3 +432,26 @@ class VariantThreeFineTuneDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, input_list, mask_list, y
+
+
+class VariantThreeFineTuneOnlyDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url, id_to_input, id_to_mask):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.id_to_input = id_to_input
+        self.id_to_mask = id_to_mask
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+
+        input = self.id_to_input[id]
+        mask = self.id_to_mask[id]
+
+        y = self.labels[id]
+
+        return int(id), url, input, mask, y
