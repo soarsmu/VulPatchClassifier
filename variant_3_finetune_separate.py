@@ -29,16 +29,16 @@ FINE_TUNED_MODEL_PATH = 'model/patch_variant_3_finetuned_model.sav'
 
 FINETUNE_EPOCH = 1
 
-NUMBER_OF_EPOCHS = 60
+NUMBER_OF_EPOCHS = 1
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 4
+TRAIN_BATCH_SIZE = 8
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 9}
 
 LEARNING_RATE = 1e-5
 
