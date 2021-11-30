@@ -6,7 +6,7 @@ import torch
 import tqdm
 from torch import cuda
 from torch import nn as nn
-from model import VariantThreeFineTuneClassifier
+from model import VariantThreeFineTuneOnlyClassifier
 
 EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_3'
 FINE_TUNED_MODEL_PATH = 'model/patch_variant_3_finetuned_model.sav'
@@ -112,7 +112,7 @@ def get_hunk_from_diff(diff):
 
 def get_data():
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
-    model = VariantThreeFineTuneClassifier()
+    model = VariantThreeFineTuneOnlyClassifier()
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
