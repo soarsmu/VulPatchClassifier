@@ -19,6 +19,8 @@ dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
+EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_8'
+
 model_folder_path = os.path.join(directory, 'model')
 
 BEST_MODEL_PATH = 'model/patch_variant_8_best_model.sav'
@@ -252,10 +254,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-    training_set = VariantEightDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantEightDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantEightDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantEightDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantEightDataset(train_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    val_set = VariantEightDataset(val_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    test_java_set = VariantEightDataset(test_java_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    test_python_set = VariantEightDataset(test_python_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)
