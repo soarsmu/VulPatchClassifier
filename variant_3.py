@@ -31,9 +31,9 @@ TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
 LEARNING_RATE = 1e-5
 
@@ -60,13 +60,13 @@ def custom_collate(batch):
     embeddings_features = torch.zeros((len(batch), max_embeddings, 768))
 
     for i in range(len(batch)):
-        embedding = torch.FloatTensor(batch[i][2]).to(device)
+        embedding = torch.FloatTensor(batch[i][2])
         j, k = embedding.size(0), embedding.size(1)
         embeddings_features[i] = torch.cat(
             [embedding,
-             torch.zeros((max_embeddings - j, k), device=device)])
+             torch.zeros((max_embeddings - j, k))])
 
-    label = torch.tensor(label).to(device)
+    label = torch.tensor(label)
 
     return id, url, embeddings_features.float(), label.long()
 
