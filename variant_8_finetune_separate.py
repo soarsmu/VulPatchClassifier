@@ -8,14 +8,14 @@ from sklearn import metrics
 import numpy as np
 from transformers import AdamW
 from transformers import get_scheduler
-from entities import VariantThreeFineTuneOnlyDataset
-from model import VariantThreeFineTuneOnlyClassifier
+from entities import VariantEightFineTuneOnlyDataset
+from model import VariantEightFineTuneOnlyClassifier
 from pytorchtools import EarlyStopping
 import pandas as pd
 from tqdm import tqdm
 import utils
 from transformers import RobertaTokenizer
-import preprocess_variant_3
+import preprocess_variant_8
 import preprocess_variant_1
 
 # dataset_name = 'ase_dataset_sept_19_2021.csv'
@@ -24,15 +24,15 @@ directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_3_finetune_best_model.sav'
-FINE_TUNED_MODEL_PATH = 'model/patch_variant_3_finetuned_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_8_finetune_best_model.sav'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_8_finetuned_model.sav'
 
 FINETUNE_EPOCH = 1
 
 NUMBER_OF_EPOCHS = 1
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 32
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
@@ -47,7 +47,7 @@ device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
 false_cases = []
-CODE_LENGTH = 256
+CODE_LENGTH = 64
 HIDDEN_DIM = 768
 
 NUMBER_OF_LABELS = 2
@@ -105,6 +105,9 @@ def train(model, learning_rate, number_of_epochs, training_generator):
 def get_data():
     print("Reading dataset...")
     df = pd.read_csv(dataset_name)
+
+    tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
+
     df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD', 'filename']]
     items = df.to_numpy().tolist()
 
@@ -125,7 +128,15 @@ def get_data():
         if url not in url_to_diff:
             url_to_diff[url] = []
 
-        url_to_diff[url].extend(preprocess_variant_3.get_hunk_from_diff(diff))
+        removed_code = preprocess_variant_8.get_code_version(diff, False)
+        added_code = preprocess_variant_8.get_code_version(diff, True)
+
+        new_removed_code_list = preprocess_variant_8.get_line_from_code(tokenizer.sep_token, removed_code)
+        new_added_code_list = preprocess_variant_8.get_line_from_code(tokenizer.sep_token, added_code)
+
+        url_to_diff[url].extend(new_removed_code_list)
+        url_to_diff[url].extend(new_added_code_list)
+
         url_to_partition[url] = partition
         url_to_label[url] = label
         url_to_pl[url] = pl
@@ -191,14 +202,11 @@ def retrieve_patch_data(all_data, all_label, all_url):
     id_to_input = {}
     id_to_mask = {}
     index = 0
-    for i, hunk_list in tqdm(enumerate(all_data)):
+    for i, line_list in tqdm(enumerate(all_data)):
         code_list = []
 
-        for count, file in enumerate(hunk_list):
-            added_code = preprocess_variant_3.get_code_version(diff=file, added_version=True)
-            deleted_code = preprocess_variant_3.get_code_version(diff=file, added_version=False)
-
-            code = added_code + tokenizer.sep_token + deleted_code
+        for count, line in enumerate(line_list):
+            code = tokenizer.sep_token + line
             code_list.append(code)
 
         input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
@@ -220,8 +228,8 @@ def do_train():
     train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
 
     index = 0
-    for i, hunk_list in enumerate((patch_data['train'])):
-        for j in range(len(hunk_list)):
+    for i, line_list in enumerate((patch_data['train'])):
+        for j in range(len(line_list)):
             train_ids.append(index)
             index += 1
 
@@ -233,10 +241,10 @@ def do_train():
     id_to_input, id_to_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
     print("Finish preparing commit patch data")
 
-    training_set = VariantThreeFineTuneOnlyDataset(train_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
+    training_set = VariantEightFineTuneOnlyDataset(train_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
 
-    model = VariantThreeFineTuneOnlyClassifier()
+    model = VariantEightFineTuneOnlyClassifier()
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")

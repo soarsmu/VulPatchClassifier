@@ -647,3 +647,30 @@ class VariantEightAttentionClassifier(nn.Module):
         o_feats = self.linear(feats)
         out = self.output(o_feats)
         return out
+
+class VariantEightFineTuneOnlyClassifier(nn.Module):
+    def __init__(self):
+        super(VariantEightFineTuneOnlyClassifier, self).__init__()
+        self.HIDDEN_DIM = 768
+        self.DENSE_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+
+        self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
+
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.DENSE_DIM)
+        self.relu = nn.ReLU()
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, input_batch, mask_batch):
+        embeddings = self.code_bert(input_ids=input_batch, attention_mask=mask_batch).last_hidden_state[:, 0, :]
+
+        x = embeddings
+        x = self.drop_out(x)
+        x = self.linear(x)
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+
+        return x
