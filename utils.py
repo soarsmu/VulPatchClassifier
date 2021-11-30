@@ -45,7 +45,7 @@ def get_data(dataset_name):
                 label_val_java.append(label)
             if pl == 'python' and url not in url_val_python:
                 url_val_python.append(url)
-                label_val_python.append(url)
+                label_val_python.append(label)
 
         elif partition == 'test':
             if pl == 'java' and url not in url_test_java:
