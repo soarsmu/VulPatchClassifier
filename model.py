@@ -290,6 +290,8 @@ class VariantThreeFineTuneOnlyClassifier(nn.Module):
     def __init__(self):
         super(VariantThreeFineTuneOnlyClassifier, self).__init__()
         self.HIDDEN_DIM = 768
+        self.DENSE_DIM = 768
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
         self.NUMBER_OF_LABELS = 2
 
         self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
