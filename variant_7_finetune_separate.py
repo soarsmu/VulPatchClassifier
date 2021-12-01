@@ -221,6 +221,9 @@ def do_train():
     index = 0
     for i, hunk_list in enumerate((patch_data['train'])):
         for j in range(len(hunk_list)):
+            # 1 for added code, 1 for removed code
+            train_ids.append(index)
+            index += 1
             train_ids.append(index)
             index += 1
 
