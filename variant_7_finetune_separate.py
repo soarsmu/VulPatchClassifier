@@ -185,7 +185,7 @@ def retrieve_patch_data(all_data, all_label, all_url):
     tokenizer = RobertaTokenizer.from_pretrained("microsoft/codebert-base")
 
     print("Preparing tokenizer data...")
-
+    train_ids = []
     id_to_label = {}
     id_to_url = {}
     id_to_input = {}
@@ -195,10 +195,12 @@ def retrieve_patch_data(all_data, all_label, all_url):
         code_list = []
 
         for count, hunk in enumerate(hunk_list):
-            removed_code = tokenizer.sep_token + preprocess_variant_3.get_code_version(hunk, False)
-            added_code = tokenizer.sep_token + preprocess_variant_3.get_code_version(hunk, True)
-            code_list.append(removed_code)
-            code_list.append(added_code)
+            removed_code = preprocess_variant_3.get_code_version(hunk, False)
+            added_code = preprocess_variant_3.get_code_version(hunk, True)
+            if removed_code.strip() != '':
+                code_list.append(tokenizer.sep_token + removed_code)
+            if added_code.strip() != '':
+                code_list.append(tokenizer.sep_token + added_code)
 
         input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
 
@@ -207,9 +209,10 @@ def retrieve_patch_data(all_data, all_label, all_url):
             id_to_mask[index] = mask_list[j]
             id_to_label[index] = all_label[i]
             id_to_url[index] = all_url[i]
+            train_ids.append(index)
             index += 1
 
-    return id_to_input, id_to_mask, id_to_label, id_to_url
+    return train_ids, id_to_input, id_to_mask, id_to_label, id_to_url
 
 def do_train():
     print("Dataset name: {}".format(dataset_name))
@@ -219,20 +222,20 @@ def do_train():
     train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
 
     index = 0
-    for i, hunk_list in enumerate((patch_data['train'])):
-        for j in range(len(hunk_list)):
-            # 1 for added code, 1 for removed code
-            train_ids.append(index)
-            index += 1
-            train_ids.append(index)
-            index += 1
+    # for i, hunk_list in enumerate((patch_data['train'])):
+    #     for j in range(len(hunk_list)):
+    #         # 1 for added code, 1 for removed code
+    #         train_ids.append(index)
+    #         index += 1
+    #         train_ids.append(index)
+    #         index += 1
 
     all_data = patch_data['train']
     all_label = label_data['train']
     all_url = url_data['train']
 
     print("Preparing commit patch data...")
-    id_to_input, id_to_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
+    train_ids, id_to_input, id_to_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
     print("Finish preparing commit patch data")
 
     training_set = VariantSevenFineTuneOnlyDataset(train_ids, id_to_label, id_to_url, id_to_input, id_to_mask)

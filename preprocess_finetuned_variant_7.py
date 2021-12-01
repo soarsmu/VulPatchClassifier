@@ -28,7 +28,7 @@ torch.backends.cudnn.benchmark = True
 
 
 def get_input_and_mask(tokenizer, code_list):
-    inputs = tokenizer(code_list, padding=True, max_length=CODE_LINE_LENGTH, truncation=True, return_tensors="pt")
+    inputs = tokenizer(code_list, padding='max_length', max_length=CODE_LINE_LENGTH, truncation=True, return_tensors="pt")
 
     return inputs.data['input_ids'], inputs.data['attention_mask']
 

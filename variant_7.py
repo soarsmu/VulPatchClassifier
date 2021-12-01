@@ -69,13 +69,13 @@ def custom_collate(batch):
 
     # before: list embeddings of files
     max_before = find_max_length(before)
-    # if max_before < 5:
-    #     max_before = 5
+    if max_before < 5:
+        max_before = 5
     before_features = torch.zeros((len(batch), max_before, 768))
 
     max_after = find_max_length(after)
-    # if max_after < 5:
-    #     max_after = 5
+    if max_after < 5:
+        max_after = 5
 
     after_features = torch.zeros((len(batch), max_after, 768))
     for i in range(len(batch)):
