@@ -31,7 +31,7 @@ FINETUNE_EPOCH = 1
 NUMBER_OF_EPOCHS = 1
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 64
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
@@ -68,10 +68,13 @@ def train(model, learning_rate, number_of_epochs, training_generator):
         model.train()
         total_loss = 0
         current_batch = 0
-        for index, (id_batch, url_batch, input_batch, mask_batch, label_batch) in enumerate(training_generator):
-            input_batch, mask_batch, label_batch \
-                = input_batch.to(device), mask_batch.to(device), label_batch.to(device)
-            outs = model(input_batch, mask_batch)
+        for index, (id_batch, url_batch, added_input_batch, added_mask_batch, removed_input_batch, removed_mask_batch, label_batch) in enumerate(training_generator):
+            added_input_batch, added_mask_batch, label_batch \
+                = added_input_batch.to(device), added_mask_batch.to(device), label_batch.to(device)
+
+            removed_input_batch = removed_input_batch.to(device)
+            removed_mask_batch = removed_mask_batch.to(device)
+            outs = model(added_input_batch, added_mask_batch, removed_input_batch, removed_mask_batch)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -188,8 +191,10 @@ def retrieve_patch_data(all_data, all_label, all_url):
     train_ids = []
     id_to_label = {}
     id_to_url = {}
-    id_to_input = {}
-    id_to_mask = {}
+    id_to_added_input = {}
+    id_to_added_mask = {}
+    id_to_removed_input = {}
+    id_to_removed_mask = {}
     index = 0
     for i, hunk_list in tqdm(enumerate(all_data)):
         code_list = []
@@ -197,22 +202,26 @@ def retrieve_patch_data(all_data, all_label, all_url):
         for count, hunk in enumerate(hunk_list):
             removed_code = preprocess_variant_3.get_code_version(hunk, False)
             added_code = preprocess_variant_3.get_code_version(hunk, True)
-            if removed_code.strip() != '':
-                code_list.append(tokenizer.sep_token + removed_code)
-            if added_code.strip() != '':
-                code_list.append(tokenizer.sep_token + added_code)
+            # if removed_code.strip() != '':
+            #     code_list.append(tokenizer.sep_token + removed_code)
+            # if added_code.strip() != '':
+            #     code_list.append(tokenizer.sep_token + added_code)
 
-        input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
+            input_ids, mask = get_input_and_mask(tokenizer, added_code)
+            id_to_added_input[index] = input_ids
+            id_to_added_mask[index] = mask
 
-        for j in range(len(input_ids_list)):
-            id_to_input[index] = input_ids_list[j]
-            id_to_mask[index] = mask_list[j]
+            input_ids, mask = get_input_and_mask(tokenizer, removed_code)
+            id_to_removed_input[index] = input_ids
+            id_to_removed_mask[index] = mask
+
             id_to_label[index] = all_label[i]
             id_to_url[index] = all_url[i]
-            train_ids.append(index)
+
             index += 1
 
-    return train_ids, id_to_input, id_to_mask, id_to_label, id_to_url
+
+    return train_ids, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask, id_to_label, id_to_url
 
 def do_train():
     print("Dataset name: {}".format(dataset_name))
@@ -235,10 +244,10 @@ def do_train():
     all_url = url_data['train']
 
     print("Preparing commit patch data...")
-    train_ids, id_to_input, id_to_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
+    train_ids, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask, id_to_label, id_to_url = retrieve_patch_data(all_data, all_label, all_url)
     print("Finish preparing commit patch data")
 
-    training_set = VariantSevenFineTuneOnlyDataset(train_ids, id_to_label, id_to_url, id_to_input, id_to_mask)
+    training_set = VariantSevenFineTuneOnlyDataset(train_ids, id_to_label, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask)
     training_generator = DataLoader(training_set, **TRAIN_PARAMS)
 
     model = VariantSeventFineTuneOnlyClassifier()
