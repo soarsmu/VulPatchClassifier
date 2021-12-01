@@ -511,7 +511,7 @@ class VariantEightClassifier(nn.Module):
         self.out_proj = nn.Linear(self.hidden_size, 2)
 
     def forward(self, before_batch, after_batch):
-        self.lstm.flatten_parameters()
+        # self.lstm.flatten_parameters()
         before_out, (before_final_hidden_state, _) = self.lstm(before_batch)
         before_vector = before_out[:, 0]
 
