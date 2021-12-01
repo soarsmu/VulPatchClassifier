@@ -117,12 +117,18 @@ def get_data():
         commit_id = item[0]
         repo = item[1]
         url = repo + '/commit/' + commit_id
+        partition = item[2]
         diff = item[3]
+        label = item[4]
+        pl = item[5]
 
         if url not in url_to_hunk:
             url_to_hunk[url] = []
 
         url_to_hunk[url].extend(preprocess_variant_3.get_hunk_from_diff(diff))
+        url_to_partition[url] = partition
+        url_to_label[url] = label
+        url_to_pl[url] = pl
 
     patch_train, patch_val, patch_test_java, patch_test_python = [], [], [], []
     label_train, label_val, label_test_java, label_test_python = [], [], [], []
