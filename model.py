@@ -691,9 +691,9 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, added_input_batch, added_mask_batch, removed_input_batch, removed_mask_batch):
-        added_embeddings = self.code_bert(input_ids=added_input_batch, attention_mask=added_mask_batch).last_hidden_state[:, 0, :]
-        removed_embeddings = self.code_bert(input_ids=removed_input_batch, attention_mask=removed_mask_batch).last_hidden_state[:, 0, :]
+    def forward(self, added_input, added_mask, removed_input, removed_mask):
+        added_embeddings = self.code_bert(input_ids=added_input, attention_mask=added_mask).last_hidden_state[:, 0, :]
+        removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask).last_hidden_state[:,0, :]
 
         x = torch.cat([added_embeddings, removed_embeddings], axis=1)
         x = self.drop_out(x)

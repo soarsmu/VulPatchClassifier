@@ -222,7 +222,6 @@ def retrieve_patch_data(all_data, all_label, all_url):
 
             index += 1
 
-
     return train_ids, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask, id_to_label, id_to_url
 
 def do_train():
