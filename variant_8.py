@@ -191,31 +191,31 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
             torch.save(model.state_dict(), CURRENT_MODEL_PATH)
 
-            print("Result on Java testing dataset...")
-            precision, recall, f1, auc = predict_test_data(model=model,
-                                                           testing_generator=test_java_generator,
-                                                           device=device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC: {}".format(auc))
-            print("-" * 32)
-
-            print("Result on Python testing dataset...")
-            precision, recall, f1, auc = predict_test_data(model=model,
-                                                           testing_generator=test_python_generator,
-                                                           device=device)
-
-            print("Precision: {}".format(precision))
-            print("Recall: {}".format(recall))
-            print("F1: {}".format(f1))
-            print("AUC: {}".format(auc))
-            print("-" * 32)
-
             if early_stopping.early_stop:
                 print("Early stopping")
                 break
+
+    print("Result on Java testing dataset...")
+    precision, recall, f1, auc = predict_test_data(model=model,
+                                                   testing_generator=test_java_generator,
+                                                   device=device)
+
+    print("Precision: {}".format(precision))
+    print("Recall: {}".format(recall))
+    print("F1: {}".format(f1))
+    print("AUC: {}".format(auc))
+    print("-" * 32)
+
+    print("Result on Python testing dataset...")
+    precision, recall, f1, auc = predict_test_data(model=model,
+                                                   testing_generator=test_python_generator,
+                                                   device=device)
+
+    print("Precision: {}".format(precision))
+    print("Recall: {}".format(recall))
+    print("F1: {}".format(f1))
+    print("AUC: {}".format(auc))
+    print("-" * 32)
 
     return model
 
