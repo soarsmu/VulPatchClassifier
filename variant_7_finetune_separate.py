@@ -218,6 +218,8 @@ def retrieve_patch_data(all_data, all_label, all_url):
             id_to_label[index] = all_label[i]
             id_to_url[index] = all_url[i]
 
+            train_ids.append(index)
+
             index += 1
 
 
