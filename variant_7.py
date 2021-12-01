@@ -19,6 +19,8 @@ dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
+EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_7'
+
 model_folder_path = os.path.join(directory, 'model')
 
 BEST_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
@@ -30,18 +32,22 @@ TRAIN_BATCH_SIZE = 64
 VALIDATION_BATCH_SIZE = 64
 TEST_BATCH_SIZE = 64
 
-TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
-TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 0}
+TRAIN_PARAMS = {'batch_size': TRAIN_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
+TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
 LEARNING_RATE = 1e-5
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
+random_seed = 109
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
 false_cases = []
-CODE_LENGTH = 512
+CODE_LENGTH = 128
 HIDDEN_DIM = 768
 
 NUMBER_OF_LABELS = 2
@@ -73,20 +79,20 @@ def custom_collate(batch):
 
     after_features = torch.zeros((len(batch), max_after, 768))
     for i in range(len(batch)):
-        before = torch.FloatTensor(batch[i][2]).to(device)
+        before = torch.FloatTensor(batch[i][2])
         j, k = before.size(0), before.size(1)
         before_features[i] = torch.cat(
             [before,
-             torch.zeros((max_before - j, k), device=device)])
+             torch.zeros((max_before - j, k))])
 
     for i in range(len(batch)):
-        after = torch.FloatTensor(batch[i][3]).to(device)
+        after = torch.FloatTensor(batch[i][3])
         j, k = after.size(0), after.size(1)
         after_features[i] = torch.cat(
             [after,
-             torch.zeros((max_after - j, k), device=device)])
+             torch.zeros((max_after - j, k))])
 
-    label = torch.tensor(label).to(device)
+    label = torch.tensor(label)
 
     return id, url, before_features.float(), after_features.float(), label.long()
 
@@ -256,10 +262,10 @@ def do_train():
         id_to_label[index] = label_data['test_python'][i]
         index += 1
 
-    training_set = VariantSevenDataset(train_ids, id_to_label, id_to_url)
-    val_set = VariantSevenDataset(val_ids, id_to_label, id_to_url)
-    test_java_set = VariantSevenDataset(test_java_ids, id_to_label, id_to_url)
-    test_python_set = VariantSevenDataset(test_python_ids, id_to_label, id_to_url)
+    training_set = VariantSevenDataset(train_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    val_set = VariantSevenDataset(val_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    test_java_set = VariantSevenDataset(test_java_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
+    test_python_set = VariantSevenDataset(test_python_ids, id_to_label, id_to_url, EMBEDDING_DIRECTORY)
 
     training_generator = DataLoader(training_set, **TRAIN_PARAMS, collate_fn=custom_collate)
     val_generator = DataLoader(val_set, **VALIDATION_PARAMS, collate_fn=custom_collate)

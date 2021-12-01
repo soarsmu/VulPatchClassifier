@@ -10,10 +10,11 @@ import matplotlib.pyplot as plt
 
 directory = os.path.dirname(os.path.abspath(__file__))
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset_new.csv'
+EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_7'
+FINE_TUNED_MODEL_PATH = 'model/patch_variant_7_finetuned_model.sav'
 
-DATA_FILE_NAME = 'hunk_data_sub'
+# dataset_name = 'ase_dataset_sept_19_2021.csv'
+dataset_name = 'huawei_sub_dataset.csv'
 
 CODE_LINE_LENGTH = 128
 
@@ -41,15 +42,15 @@ def get_code_version(diff, added_version):
             mark = '-'
         if line.startswith(mark):
             line = line[1:].strip()
-            if line.startswith(('//', '/**', '*', '*/', '#')):
+            if line.startswith(('//', '/**', '/*', '*', '*/', '#')):
                 continue
             code = code + line + '\n'
 
     return code
 
 
-def get_file_embeddings(code_list, tokenizer, code_bert):
-    # process all lines in one
+def get_hunk_embeddings(code_list, tokenizer, code_bert):
+    # process all hunks in one
     input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
     with torch.no_grad():
@@ -61,8 +62,8 @@ def get_file_embeddings(code_list, tokenizer, code_bert):
 
 
 def write_embeddings_to_files(removed_code_list, added_code_list, url_list, tokenizer, code_bert):
-    removed_embeddings = get_file_embeddings(removed_code_list, tokenizer, code_bert)
-    added_embeddings = get_file_embeddings(added_code_list, tokenizer, code_bert)
+    removed_embeddings = get_hunk_embeddings(removed_code_list, tokenizer, code_bert)
+    added_embeddings = get_hunk_embeddings(added_code_list, tokenizer, code_bert)
 
     url_to_removed_embeddings = {}
     url_to_added_embeddings = {}
@@ -81,7 +82,7 @@ def write_embeddings_to_files(removed_code_list, added_code_list, url_list, toke
         data['after'] = added_embeddings
         url_to_data[url] = data
     for url, data in url_to_data.items():
-        file_path = os.path.join(directory, '../' + DATA_FILE_NAME + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         json.dump(data, open(file_path, 'w'))
 
 
@@ -146,7 +147,7 @@ def get_data():
     added_code_list = []
     url_list = []
     for url, diff_list in tqdm.tqdm(url_to_hunk.items()):
-        file_path = os.path.join(directory, '../' + DATA_FILE_NAME + '/' + url.replace('/', '_') + '.txt')
+        file_path = os.path.join(directory, EMBEDDING_DIRECTORY + '/' + url.replace('/', '_') + '.txt')
         if os.path.isfile(file_path):
             continue
 
