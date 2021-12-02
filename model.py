@@ -686,16 +686,15 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
 
         self.code_bert = RobertaModel.from_pretrained("microsoft/codebert-base", num_labels=2)
 
-        self.linear = nn.Linear(2 * self.HIDDEN_DIM, self.DENSE_DIM)
+        self.linear = nn.Linear(self.HIDDEN_DIM, self.DENSE_DIM)
         self.relu = nn.ReLU()
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, added_input, added_mask, removed_input, removed_mask):
-        added_embeddings = self.code_bert(input_ids=added_input, attention_mask=added_mask).last_hidden_state[:, 0, :]
-        removed_embeddings = self.code_bert(input_ids=removed_input, attention_mask=removed_mask).last_hidden_state[:,0, :]
+    def forward(self, input_batch, mask_batch):
+        embeddings = self.code_bert(input_ids=input_batch, attention_mask=mask_batch).last_hidden_state[:, 0, :]
 
-        x = torch.cat([added_embeddings, removed_embeddings], axis=1)
+        x = embeddings
         x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
