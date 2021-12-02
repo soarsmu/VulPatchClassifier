@@ -17,8 +17,8 @@ import utils
 from transformers import RobertaTokenizer
 import preprocess_variant_3
 
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset.csv'
 directory = os.path.dirname(os.path.abspath(__file__))
 
 model_folder_path = os.path.join(directory, 'model')
@@ -31,7 +31,7 @@ FINETUNE_EPOCH = 1
 NUMBER_OF_EPOCHS = 1
 EARLY_STOPPING_ROUND = 5
 
-TRAIN_BATCH_SIZE = 64
+TRAIN_BATCH_SIZE = 32
 VALIDATION_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 
@@ -50,7 +50,7 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
 false_cases = []
-CODE_LENGTH = 128
+CODE_LENGTH = 256
 HIDDEN_DIM = 768
 
 NUMBER_OF_LABELS = 2
