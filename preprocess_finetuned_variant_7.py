@@ -162,15 +162,11 @@ def get_data():
             continue
 
         for i, diff in enumerate(diff_list):
-            removed_code = get_code_version(diff, False)
-            added_code = get_code_version(diff, True)
+            removed_code = tokenizer.sep_token + get_code_version(diff, False)
+            added_code = tokenizer.sep_token + get_code_version(diff, True)
 
-            if removed_code.strip() != '':
-                removed_code_list.append(tokenizer.sep_token + removed_code)
-
-            if added_code.strip() != '':
-                added_code_list.append(tokenizer.sep_token + added_code)
-
+            removed_code_list.append(removed_code)
+            added_code_list.append(added_code)
             url_list.append(url)
 
         if len(url_list) >= 200:
