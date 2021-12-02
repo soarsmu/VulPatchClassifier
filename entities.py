@@ -479,12 +479,14 @@ class VariantEightFineTuneOnlyDataset(Dataset):
 
 
 class VariantSevenFineTuneOnlyDataset(Dataset):
-    def __init__(self, list_IDs, labels, id_to_url, id_to_input, id_to_mask):
+    def __init__(self, list_IDs, labels, id_to_url, id_to_added_input, id_to_added_mask, id_to_removed_input, id_to_removed_mask):
         self.list_IDs = list_IDs
         self.labels = labels
         self.id_to_url = id_to_url
-        self.id_to_input = id_to_input
-        self.id_to_mask = id_to_mask
+        self.id_to_added_input = id_to_added_input
+        self.id_to_added_mask = id_to_added_mask
+        self.id_to_removed_input = id_to_removed_input
+        self.id_to_removed_mask = id_to_removed_mask
 
     def __len__(self):
         return len(self.list_IDs)
@@ -493,9 +495,12 @@ class VariantSevenFineTuneOnlyDataset(Dataset):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
 
-        input = self.id_to_input[id]
-        mask = self.id_to_mask[id]
+        added_input = self.id_to_added_input[id]
+        added_mask = self.id_to_added_mask[id]
+
+        removed_input = self.id_to_removed_input[id]
+        removed_mask = self.id_to_removed_mask[id]
 
         y = self.labels[id]
 
-        return int(id), url, input, mask, y
+        return int(id), url, added_input, added_mask, removed_input, removed_mask, y
