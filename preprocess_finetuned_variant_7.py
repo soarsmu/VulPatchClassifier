@@ -52,6 +52,8 @@ def get_code_version(diff, added_version):
 
 def get_hunk_embeddings(code_list, tokenizer, code_bert):
     # process all hunks in one
+    if len(code_list) == 0:
+        return []
     input_ids, attention_mask = get_input_and_mask(tokenizer, code_list)
 
     with torch.no_grad():
