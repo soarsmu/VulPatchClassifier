@@ -202,10 +202,13 @@ def retrieve_patch_data(all_data, all_label, all_url):
         code_list = []
 
         for count, hunk in enumerate(hunk_list):
-            removed_code = tokenizer.sep_token + preprocess_variant_3.get_code_version(hunk, False)
-            added_code = tokenizer.sep_token + preprocess_variant_3.get_code_version(hunk, True)
-            code_list.append(removed_code)
-            code_list.append(added_code)
+            removed_code = preprocess_variant_3.get_code_version(hunk, False)
+            added_code = preprocess_variant_3.get_code_version(hunk, True)
+            if removed_code.strip() != '':
+                code_list.append(tokenizer.sep_token + removed_code)
+
+            if added_code.strip() != '':
+                code_list.append(tokenizer.sep_token + added_code)
 
         input_ids_list, mask_list = get_input_and_mask(tokenizer, code_list)
 
