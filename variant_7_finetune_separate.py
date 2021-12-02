@@ -43,6 +43,10 @@ LEARNING_RATE = 1e-5
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
+random_seed = 109
+torch.manual_seed(random_seed)
+torch.cuda.manual_seed(random_seed)
+torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
 
 false_cases = []
