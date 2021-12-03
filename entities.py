@@ -280,6 +280,12 @@ class VariantSevenDataset(Dataset):
         before = data['before']
         after = data['after']
 
+        if len(before) == 0:
+            before = [empty_embedding]
+
+        if len(after) == 0:
+            after = [empty_embedding]
+
         y = self.labels[id]
 
         return int(id), url, before, after, y
