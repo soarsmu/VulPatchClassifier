@@ -38,15 +38,16 @@ VARIANT_FOUR_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_4'
 VARIANT_FIVE_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_5'
 VARIANT_SIX_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_6'
 VARIANT_SEVEN_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_7'
+VARIANT_EIGHT_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_8'
 
 
 VARIANT_ONE_MODEL_PATH = 'model/patch_variant_1_finetune_1_epoch_best_model.sav'
 VARIANT_TWO_MODEL_PATH = 'model/patch_variant_2_finetune_1_epoch_best_model.sav'
-VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_best_model.sav'
+VARIANT_THREE_MODEL_PATH = 'model/patch_variant_3_finetune_1_epoch_best_model.sav'
 VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_finetune_1_epoch_best_model.sav'
 VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_finetune_1_epoch_best_model.sav'
-VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_best_model.sav'
-VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_attention_best_model.sav'
+VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_finetune_1_epoch_best_model.sav'
+VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_finetune_1_epoch_best_model.sav'
 TEST_BATCH_SIZE = 128
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
@@ -137,7 +138,7 @@ def infer_variant_3(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_THREE_MODEL_PATH))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantThreeDataset(ids, id_to_label, id_to_url)
+    dataset = VariantThreeDataset(ids, id_to_label, id_to_url, VARIANT_THREE_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_3.custom_collate)
 
     precision, recall, f1, auc, urls, probs = variant_3.predict_test_data(model, generator, device, need_prob=True)
@@ -222,7 +223,7 @@ def infer_variant_7(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_SEVEN_MODEL_PATH))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantSevenDataset(ids, id_to_label, id_to_url)
+    dataset = VariantSevenDataset(ids, id_to_label, id_to_url, VARIANT_SEVEN_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_7.custom_collate)
 
     precision, recall, f1, auc, urls, probs = variant_7.predict_test_data(model, generator, device, need_prob=True)
@@ -251,7 +252,7 @@ def infer_variant_8(partition, result_file_path):
     model.load_state_dict(torch.load(VARIANT_EIGHT_MODEL_PATH, map_location={'cuda:0': 'cuda:1'}))
 
     ids, id_to_label, id_to_url = get_dataset_info(partition)
-    dataset = VariantEightDataset(ids, id_to_label, id_to_url)
+    dataset = VariantEightDataset(ids, id_to_label, id_to_url, VARIANT_EIGHT_EMBEDDINGS_DIRECTORY)
     generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_8.custom_collate)
 
     precision, recall, f1, auc, urls, probs = variant_8.predict_test_data(model, generator, device, need_prob=True)
@@ -460,40 +461,18 @@ def get_combined_ensemble_model():
 # infer_variant_6('test_java', 'prob_variant_6_finetune_1_epoch_test_java.txt')
 # infer_variant_6('test_python', 'prob_variant_6_finetune_1_epoch_test_python.txt')
 
-# print("Inferring variant 7...")
-# infer_variant_7('val', 'prob_variant_7_val.txt')
-# infer_variant_7('test_java', 'prob_variant_7_test_java.txt')
-# infer_variant_7('test_python', 'prob_variant_7_test_python.txt')
-#
-# print("Inferring variant 1...")
-# infer_variant_1('val_java', 'prob_variant_1_val_java.txt')
-# infer_variant_1('val_java', 'prob_variant_1_val_python.txt')
-#
-# print("Inferring variant 3...")
-# infer_variant_3('val_java', 'prob_variant_3_val_java.txt')
-# infer_variant_3('val_java', 'prob_variant_3_val_python.txt')
-#
-# print("Inferring variant 5...")
-# infer_variant_5('val', 'prob_variant_5_val_java.txt')
-# infer_variant_5('val', 'prob_variant_5_val_python.txt')
-#
-# print("Inferring variant 8...")
-# infer_variant_8('val', 'prob_variant_8_val_java.txt')
-# infer_variant_8('val', 'prob_variant_8_val_python.txt')
-#
-#
-# print("Inferring variant 2...")
-# infer_variant_2('val_java', 'prob_variant_2_val_java.txt')
-# infer_variant_2('val_python', 'prob_variant_2_val_python.txt')
-#
-#
-# print("Inferring variant 6...")
-# infer_variant_6('val_java', 'prob_variant_6_val_java.txt')
-# infer_variant_6('val_python', 'prob_variant_6_val_python.txt')
-#
-# print("Inferring variant 7...")
-# infer_variant_7('val_java', 'prob_variant_7_val_java.txt')
-# infer_variant_7('val_python', 'prob_variant_7_val_python.txt')
 
+print("Inferring variant 3...")
+infer_variant_3('val', 'prob_variant_3_finetune_1_epoch_val.txt')
+infer_variant_3('test_java', 'prob_variant_3_finetune_1_epoch_test_java.txt')
+infer_variant_3('test_python', 'prob_variant_3_finetune_1_epoch_test_python.txt')
 
-get_combined_ensemble_model()
+print("Inferring variant 7...")
+infer_variant_7('val', 'prob_variant_7_finetune_1_epoch_val.txt')
+infer_variant_7('test_java', 'prob_variant_7_finetune_1_epoch_test_java.txt')
+infer_variant_7('test_python', 'prob_variant_7_finetune_1_epoch_test_python.txt')
+
+print("Inferring variant 8...")
+infer_variant_8('val', 'prob_variant_8_finetune_1_epoch_val.txt')
+infer_variant_8('test_java', 'prob_variant_8_finetune_1_epoch_test_java.txt')
+infer_variant_8('test_python', 'prob_variant_8_finetune_1_epoch_test_python.txt')
