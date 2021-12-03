@@ -52,7 +52,7 @@ TEST_BATCH_SIZE = 128
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 use_cuda = cuda.is_available()
-device = torch.device("cuda:1" if use_cuda else "cpu")
+device = torch.device("cuda:0" if use_cuda else "cpu")
 random_seed = 109
 torch.manual_seed(random_seed)
 torch.cuda.manual_seed(random_seed)
