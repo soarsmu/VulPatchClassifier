@@ -521,7 +521,7 @@ class EnsembleDataset(Dataset):
         id = self.list_IDs[index]
         url = self.id_to_url[id]
 
-        features = self.id_to_features[id]
+        features = torch.FloatTensor(self.id_to_features[id])
 
         y = self.labels[id]
 
