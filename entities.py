@@ -522,15 +522,14 @@ class EnsembleDataset(Dataset):
         url = self.id_to_url[id]
 
         features = self.id_to_features[id]
-        feature_list = [
-            torch.FloatTensor(features[0]),
-            torch.FloatTensor(features[1]),
-            torch.FloatTensor(features[2]),
-            torch.FloatTensor(features[3]),
-            torch.FloatTensor(features[4]),
-            torch.FloatTensor(features[5]),
-            torch.FloatTensor(features[6])
-        ]
+
+        feature_1 = torch.FloatTensor(features[0])
+        feature_2 = torch.FloatTensor(features[1])
+        feature_3 = torch.FloatTensor(features[2])
+        feature_5 = torch.FloatTensor(features[3])
+        feature_6 = torch.FloatTensor(features[4])
+        feature_7 = torch.FloatTensor(features[5])
+        feature_8 = torch.FloatTensor(features[6])
         y = self.labels[id]
 
-        return int(id), url, feature_list, y
+        return int(id), url, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, y

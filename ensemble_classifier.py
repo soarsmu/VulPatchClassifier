@@ -68,14 +68,14 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
     urls = []
     with torch.no_grad():
         model.eval()
-        for ids, url_batch, feature_list_batch, label_batch in tqdm(testing_generator):
-            feature_1 = feature_list_batch[:, 0, :].to(device)
-            feature_2 = feature_list_batch[:, 1, :].to(device)
-            feature_3 = feature_list_batch[:, 2, :].to(device)
-            feature_5 = feature_list_batch[:, 3, :].to(device)
-            feature_6 = feature_list_batch[:, 4, :].to(device)
-            feature_7 = feature_list_batch[:, 5, :].to(device)
-            feature_8 = feature_list_batch[:, 6, :].to(device)
+        for ids, url_batch, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, label_batch in tqdm(testing_generator):
+            feature_1 = feature_1.to(device)
+            feature_2 = feature_2.to(device)
+            feature_3 = feature_3.to(device)
+            feature_5 = feature_5.to(device)
+            feature_6 = feature_6.to(device)
+            feature_7 = feature_7.to(device)
+            feature_8 = feature_8.to(device)
 
             label_batch = label_batch.to(device)
 
@@ -120,16 +120,18 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
         model.train()
         total_loss = 0
         current_batch = 0
-        for id_batch, url_batch, feature_list_batch, label_batch in training_generator:
-            feature_1 = feature_list_batch[:, 0, :].to(device)
-            feature_2 = feature_list_batch[:, 1, :].to(device)
-            feature_3 = feature_list_batch[:, 2, :].to(device)
-            feature_5 = feature_list_batch[:, 3, :].to(device)
-            feature_6 = feature_list_batch[:, 4, :].to(device)
-            feature_7 = feature_list_batch[:, 5, :].to(device)
-            feature_8 = feature_list_batch[:, 6, :].to(device)
+        for ids, url_batch, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, label_batch in tqdm(training_generator):
+            feature_1 = feature_1.to(device)
+            feature_2 = feature_2.to(device)
+            feature_3 = feature_3.to(device)
+            feature_5 = feature_5.to(device)
+            feature_6 = feature_6.to(device)
+            feature_7 = feature_7.to(device)
+            feature_8 = feature_8.to(device)
 
             label_batch = label_batch.to(device)
+
+            outs = model(feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8)
 
             outs = model(feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8)
             outs = F.log_softmax(outs, dim=1)
