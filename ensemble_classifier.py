@@ -212,7 +212,7 @@ def do_train():
     for url in url_data['test_python']:
         feature_data['test_python'].append(url_to_features[url])
 
-    train_ids, val_ids, test_java_ids, test_python_ids = [], [], [], []
+    val_ids, test_java_ids, test_python_ids = [], [], []
     index = 0
     id_to_url = {}
     id_to_label = {}
@@ -239,7 +239,7 @@ def do_train():
         id_to_feature[index] = feature_data['test_python'][i]
         index += 1
 
-    training_set = EnsembleDataset(train_ids, id_to_label, id_to_url, id_to_feature)
+    training_set = EnsembleDataset(val_ids, id_to_label, id_to_url, id_to_feature)
     test_java_set = EnsembleDataset(test_java_ids, id_to_label, id_to_url, id_to_feature)
     test_python_set = EnsembleDataset(test_python_ids, id_to_label, id_to_url, id_to_feature)
 
