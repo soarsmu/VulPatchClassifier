@@ -70,7 +70,7 @@ def write_prob_to_file(file_path, urls, probs):
 
 def write_feature_to_file(file_path, urls, features):
     file_path = os.path.join(directory, file_path)
-    data = []
+    data = {}
     for i, url in enumerate(urls):
         data[url] = features[i]
 
