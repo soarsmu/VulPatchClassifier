@@ -505,3 +505,24 @@ class VariantSevenFineTuneOnlyDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, input, mask, y
+
+
+class EnsembleDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url, id_to_features):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.id_to_features = id_to_features
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+
+        features = self.id_to_features[id]
+
+        y = self.labels[id]
+
+        return int(id), url, features, y

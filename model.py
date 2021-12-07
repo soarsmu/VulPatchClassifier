@@ -740,3 +740,53 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
             return x, final_feature
         else:
             return x
+
+
+class EnsembleModel(nn.Module):
+    def __init__(self):
+        super(EnsembleModel, self).__init__()
+        self.FEATURE_DIM = 768
+        self.DENSE_DIM = 128
+        self.CNN_FEATURE_DIM = 300
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        # need 2 linear layer to project CNN feature dim to 768
+        # 1 for variant 3
+        # 1 for variant 7
+        self.l1 = nn.Linear(self.CNN_FEATURE_DIM, self.FEATURE_DIM)
+        self.l2 = nn.Linear(self.CNN_FEATURE_DIM * 2, self.FEATURE_DIM)
+
+        # need 1 linear layer to project varian 5 feature to 768
+
+        self.l3 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
+
+        # 1 layer to combine
+        self.l4 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
+
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.FEATURE_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, feature_list):
+        feature_one = feature_list[:, 0, :]
+        feature_two = feature_list[:, 1, :]
+        feature_three = feature_list[:, 2, :]
+        feature_five = feature_list[:, 3, :]
+        feature_six = feature_list[:, 4, :]
+        feature_seven = feature_list[:, 5, :]
+        feature_eight = feature_list[:, 6, :]
+
+        feature_three = self.l1(feature_three)
+        feature_seven = self.l2(feature_seven)
+        feature_five = self.l3(feature_five)
+
+        feature_list = torch.cat([feature_one, feature_two, feature_three,
+                                  feature_five, feature_six, feature_seven, feature_eight], dim=1)
+
+        x = self.drop_out(feature_list)
+        x = self.l4(x)
+        x = self.relu(x)
+        x = x.dropout(x)
+        x = self.out_proj(x)
+
+        return x
