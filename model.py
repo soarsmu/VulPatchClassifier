@@ -782,7 +782,7 @@ class EnsembleModel(nn.Module):
         x = self.drop_out(feature_list)
         x = self.l5(x)
         x = self.relu(x)
-        x = self.dropout(x)
+        x = self.drop_out(x)
         x = self.out_proj(x)
 
         return x
