@@ -105,7 +105,7 @@ def predict_test_data(model, testing_generator, device, need_prob=False, need_fe
         model.eval()
         for ids, url, before_batch, after_batch, label_batch in tqdm(testing_generator):
             before_batch, after_batch, label_batch = before_batch.to(device), after_batch.to(device), label_batch.to(device)
-            outs = model(before_batch, after_batch)
+            outs = model(before_batch, after_batch, need_final_feature=need_feature_only)
 
             if need_feature_only:
                 final_features.extend(outs[1].tolist())
