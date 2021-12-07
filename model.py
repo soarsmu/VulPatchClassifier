@@ -749,6 +749,7 @@ class EnsembleModel(nn.Module):
         self.DENSE_DIM = 128
         self.CNN_FEATURE_DIM = 300
         self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
         # need 2 linear layer to project CNN feature dim to 768
         # 1 for variant 3
         # 1 for variant 7
