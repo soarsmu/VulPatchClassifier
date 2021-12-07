@@ -188,8 +188,11 @@ def do_train():
 
     print("Reading data...")
     url_to_features = {}
+    print("Reading val data")
     url_to_features.update(read_feature_list(val_feature_path))
+    print("Reading test java data")
     url_to_features.update(read_feature_list(test_java_feature_path))
+    print("Reading test python data")
     url_to_features.update(read_feature_list(test_python_feature_path))
 
     print("Finish reading")
