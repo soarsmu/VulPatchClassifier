@@ -768,21 +768,13 @@ class EnsembleModel(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.FEATURE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, feature_list):
-        feature_one = feature_list[:, 0, :]
-        feature_two = feature_list[:, 1, :]
-        feature_three = feature_list[:, 2, :]
-        feature_five = feature_list[:, 3, :]
-        feature_six = feature_list[:, 4, :]
-        feature_seven = feature_list[:, 5, :]
-        feature_eight = feature_list[:, 6, :]
+    def forward(self, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8):
+        feature_3 = self.l1(feature_3)
+        feature_7 = self.l2(feature_7)
+        feature_5 = self.l3(feature_5)
 
-        feature_three = self.l1(feature_three)
-        feature_seven = self.l2(feature_seven)
-        feature_five = self.l3(feature_five)
-
-        feature_list = torch.cat([feature_one, feature_two, feature_three,
-                                  feature_five, feature_six, feature_seven, feature_eight], dim=1)
+        feature_list = torch.cat([feature_1, feature_2, feature_3,
+                                  feature_5, feature_6, feature_7, feature_8], dim=1)
 
         x = self.drop_out(feature_list)
         x = self.l4(x)
