@@ -13,13 +13,14 @@ from torch.nn import functional as F
 from tqdm import tqdm
 import numpy as np
 from sklearn import metrics
-
+import csv
 
 
 directory = os.path.dirname(os.path.abspath(__file__))
-# dataset_name = 'ase_dataset_sept_19_2021.csv'
-dataset_name = 'huawei_sub_dataset.csv'
+dataset_name = 'ase_dataset_sept_19_2021.csv'
+# dataset_name = 'huawei_sub_dataset.csv'
 
+FINAL_MODEL_PATH = 'model/patch_ensemble_model.sav'
 
 TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
@@ -30,7 +31,7 @@ VALIDATION_PARAMS = {'batch_size': VALIDATION_BATCH_SIZE, 'shuffle': True, 'num_
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 
 LEARNING_RATE = 1e-5
-NUMBER_OF_EPOCHS = 50
+NUMBER_OF_EPOCHS = 20
 
 use_cuda = cuda.is_available()
 device = torch.device("cuda:0" if use_cuda else "cpu")
@@ -39,6 +40,13 @@ torch.manual_seed(random_seed)
 torch.cuda.manual_seed(random_seed)
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = True
+
+
+def write_prob_to_file(file_path, urls, probs):
+    with open(file_path, 'w') as file:
+        writer = csv.writer(file)
+        for i, url in enumerate(urls):
+            writer.writerow([url, probs[i]])
 
 
 def read_features_from_file(file_path):
@@ -132,8 +140,6 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
             label_batch = label_batch.to(device)
 
             outs = model(feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8)
-
-            outs = model(feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8)
             outs = F.log_softmax(outs, dim=1)
             loss = loss_function(outs, label_batch)
             train_losses.append(loss.item())
@@ -153,9 +159,12 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
         model.eval()
 
         print("Result on Java testing dataset...")
-        precision, recall, f1, auc = predict_test_data(model=model,
+        precision, recall, f1, auc, urls, probs = predict_test_data(model=model,
                                                        testing_generator=test_java_generator,
-                                                       device=device)
+                                                       device=device, need_prob=True)
+
+        if epoch == number_of_epochs - 1:
+            write_prob_to_file('probs/prob_ensemble_classifier_test_java.txt', urls, probs)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
@@ -164,15 +173,21 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
         print("-" * 32)
 
         print("Result on Python testing dataset...")
-        precision, recall, f1, auc = predict_test_data(model=model,
+        precision, recall, f1, auc, urls, probs = predict_test_data(model=model,
                                                        testing_generator=test_python_generator,
-                                                       device=device)
+                                                       device=device, need_prob=True)
+
+        if epoch == number_of_epochs - 1:
+            write_prob_to_file('probs/prob_ensemble_classifier_test_python.txt', urls, probs)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
         print("F1: {}".format(f1))
         print("AUC: {}".format(auc))
         print("-" * 32)
+
+        if epoch == number_of_epochs - 1:
+            torch.save(model.state_dict(), FINAL_MODEL_PATH)
 
     return model
 
