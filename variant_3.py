@@ -75,16 +75,21 @@ def custom_collate(batch):
     return id, url, embeddings_features.float(), label.long()
 
 
-def predict_test_data(model, testing_generator, device, need_prob=False):
+def predict_test_data(model, testing_generator, device, need_prob=False, need_feature_only=False):
     y_pred = []
     y_test = []
     probs = []
     urls = []
+    final_features = []
     with torch.no_grad():
         model.eval()
         for ids, url, hunk_batch, label_batch in tqdm(testing_generator):
             hunk_batch, label_batch = hunk_batch.to(device), label_batch.to(device)
-            outs = model(hunk_batch)
+
+            outs = model(hunk_batch, need_final_feature=need_feature_only)
+            if need_feature_only:
+                final_features.extend(outs[1].tolist())
+                outs = outs[0]
 
             outs = F.softmax(outs, dim=1)
 
@@ -102,6 +107,10 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
             auc = 0
 
     print("Finish testing")
+
+    if need_feature_only:
+        return auc, urls, final_features
+
     if not need_prob:
         return precision, recall, f1, auc
     else:

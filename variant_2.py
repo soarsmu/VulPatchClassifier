@@ -52,16 +52,21 @@ NUMBER_OF_LABELS = 2
 # model_path_prefix = model_folder_path + '/patch_variant_2_16112021_model_'
 
 
-def predict_test_data(model, testing_generator, device, need_prob=False):
+def predict_test_data(model, testing_generator, device, need_prob=False, need_feature_only=False):
     y_pred = []
     y_test = []
     probs = []
     urls = []
+    final_features = []
     with torch.no_grad():
         model.eval()
         for ids, url_batch, file_batch, label_batch in tqdm(testing_generator):
             file_batch, label_batch = file_batch.to(device), label_batch.to(device)
-            outs = model(file_batch)
+
+            outs = model(file_batch, need_final_feature=need_feature_only)
+            if need_feature_only:
+                final_features.extend(outs[1].tolist())
+                outs = outs[0]
 
             outs = F.softmax(outs, dim=1)
 
@@ -79,6 +84,10 @@ def predict_test_data(model, testing_generator, device, need_prob=False):
             auc = 0
 
     print("Finish testing")
+
+    if need_feature_only:
+        return auc, urls, final_features
+
     if not need_prob:
         return precision, recall, f1, auc
     else:

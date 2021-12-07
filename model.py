@@ -128,7 +128,7 @@ class VariantTwoClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.HIDDEN_DIM, 2)
 
-    def forward(self, file_batch):
+    def forward(self, file_batch, need_final_feature=False):
         d1, d2, d3 = file_batch.shape
         file_batch = torch.reshape(file_batch, (d1, d2*d3))
 
@@ -136,10 +136,15 @@ class VariantTwoClassifier(nn.Module):
 
         x = commit_embedding
         x = self.relu(x)
+        final_feature = x
+
         x = self.drop_out(x)
         out = self.out_proj(x)
 
-        return out
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
 
 
 class VariantTwoFineTuneClassifier(nn.Module):
@@ -183,7 +188,7 @@ class VariantSixClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.HIDDEN_DIM, 2)
 
-    def forward(self, before_batch, after_batch):
+    def forward(self, before_batch, after_batch, need_final_feature=False):
         d1, d2, d3 = before_batch.shape
         before_batch = torch.reshape(before_batch, (d1, d2*d3))
         after_batch = torch.reshape(after_batch, (d1, d2*d3))
@@ -194,10 +199,16 @@ class VariantSixClassifier(nn.Module):
 
         x = combined
         x = self.relu(x)
+
+        final_feature = x
+
         x = self.drop_out(x)
         out = self.out_proj(x)
 
-        return out
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
 
 
 class VariantThreeClassifier(nn.Module):
@@ -223,7 +234,7 @@ class VariantThreeClassifier(nn.Module):
         self.fc = nn.Linear(np.sum(num_filters), num_classes)
         self.dropout = nn.Dropout(p=dropout)
 
-    def forward(self, code):
+    def forward(self, code, need_final_feature=False):
         """Perform a forward pass through the network.
 
         Args:
@@ -255,8 +266,14 @@ class VariantThreeClassifier(nn.Module):
                          dim=1)
 
         # Compute logits. Output shape: (b, n_classes)
+        final_feature = x_fc
+
         out = self.fc(self.dropout(x_fc))
-        return out
+
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
 
 
 class VariantThreeFineTuneClassifier(nn.Module):
@@ -336,7 +353,7 @@ class VariantSevenClassifier(nn.Module):
         self.fc = nn.Linear(2 * np.sum(num_filters), num_classes)
         self.dropout = nn.Dropout(p=dropout)
 
-    def forward(self, before_batch, after_batch):
+    def forward(self, before_batch, after_batch, need_final_feature=False):
         """Perform a forward pass through the network.
 
         Args:
@@ -396,9 +413,14 @@ class VariantSevenClassifier(nn.Module):
         # Compute logits. Output shape: (b, n_classes)
 
         x_fc = torch.cat([x_fc_before, x_fc_after], axis=1)
+        final_feature = x_fc
+
         out = self.fc(self.dropout(x_fc))
 
-        return out
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
 
 
 class VariantOneClassifier(nn.Module):
@@ -414,16 +436,19 @@ class VariantOneClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, embedding_batch):
+    def forward(self, embedding_batch, need_final_feature=False):
         x = embedding_batch
         x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
+        final_feature = x
         x = self.drop_out(x)
         x = self.out_proj(x)
 
-        return x
-
+        if need_final_feature:
+            return x, final_feature
+        else:
+            return x
 
 class VariantOneFinetuneClassifier(nn.Module):
     def __init__(self):
@@ -460,16 +485,21 @@ class VariantFiveClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, before_batch, after_batch):
+    def forward(self, before_batch, after_batch, need_final_feature=False):
         combined = torch.cat([before_batch, after_batch], dim=1)
         x = combined
         x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
+        final_feature = x
         x = self.drop_out(x)
         x = self.out_proj(x)
 
-        return x
+        if need_final_feature:
+            return x, final_feature
+        else:
+            return x
+
 
 class VariantFiveFineTuneClassifier(nn.Module):
     def __init__(self):
@@ -510,7 +540,7 @@ class VariantEightClassifier(nn.Module):
 
         self.out_proj = nn.Linear(self.hidden_size, 2)
 
-    def forward(self, before_batch, after_batch):
+    def forward(self, before_batch, after_batch, need_final_feature=False):
         # self.lstm.flatten_parameters()
         before_out, (before_final_hidden_state, _) = self.lstm(before_batch)
         before_vector = before_out[:, 0]
@@ -521,12 +551,16 @@ class VariantEightClassifier(nn.Module):
         x = self.linear(torch.cat([before_vector, after_vector], axis=1))
 
         x = self.relu(x)
+        final_feature = x
 
         x = self.drop_out(x)
 
         out = self.out_proj(x)
 
-        return out
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
 
 
 class VariantSixFineTuneClassifier(nn.Module):
@@ -691,14 +725,18 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.DENSE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, input_batch, mask_batch):
+    def forward(self, input_batch, mask_batch, need_final_feature=False):
         embeddings = self.code_bert(input_ids=input_batch, attention_mask=mask_batch).last_hidden_state[:, 0, :]
 
         x = embeddings
         x = self.drop_out(x)
         x = self.linear(x)
         x = self.relu(x)
+        final_feature = x
         x = self.drop_out(x)
         x = self.out_proj(x)
 
-        return x
+        if need_final_feature:
+            return x, final_feature
+        else:
+            return x
