@@ -777,12 +777,12 @@ class EnsembleModel(nn.Module):
         feature_5 = self.l3(feature_5)
         feature_8 = self.l4(feature_8)
         feature_list = torch.cat([feature_1, feature_2, feature_3,
-                                  feature_5, feature_6, feature_7, feature_8], axis=0)
+                                  feature_5, feature_6, feature_7, feature_8], axis=1)
 
         x = self.drop_out(feature_list)
         x = self.l5(x)
         x = self.relu(x)
-        x = x.dropout(x)
+        x = self.dropout(x)
         x = self.out_proj(x)
 
         return x
