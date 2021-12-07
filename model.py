@@ -756,12 +756,15 @@ class EnsembleModel(nn.Module):
         self.l1 = nn.Linear(self.CNN_FEATURE_DIM, self.FEATURE_DIM)
         self.l2 = nn.Linear(self.CNN_FEATURE_DIM * 2, self.FEATURE_DIM)
 
-        # need 1 linear layer to project varian 5 feature to 768
+        # need 1 linear layer to project variant 5 feature to 768
 
         self.l3 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
 
+        # need 1 linear layer to project variant 8 feature to 768
+        self.l4 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
+
         # 1 layer to combine
-        self.l4 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
+        self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
 
         self.relu = nn.ReLU()
 
@@ -772,12 +775,12 @@ class EnsembleModel(nn.Module):
         feature_3 = self.l1(feature_3)
         feature_7 = self.l2(feature_7)
         feature_5 = self.l3(feature_5)
-
+        feature_8 = self.l4(feature_8)
         feature_list = torch.cat([feature_1, feature_2, feature_3,
-                                  feature_5, feature_6, feature_7, feature_8], axis=1)
+                                  feature_5, feature_6, feature_7, feature_8], axis=0)
 
         x = self.drop_out(feature_list)
-        x = self.l4(x)
+        x = self.l5(x)
         x = self.relu(x)
         x = x.dropout(x)
         x = self.out_proj(x)
