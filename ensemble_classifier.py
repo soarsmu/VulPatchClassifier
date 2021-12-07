@@ -54,7 +54,9 @@ def read_feature_list(file_path_list):
     for file_path in file_path_list:
         data = read_features_from_file(file_path)
         for url, feature in data.items():
-            url_to_feature[url] = feature
+            if url not in url_to_feature:
+                url_to_feature[url] = []
+            url_to_feature[url].append(feature)
 
     return url_to_feature
 
