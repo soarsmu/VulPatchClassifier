@@ -503,26 +503,26 @@ def get_combined_ensemble_model():
 #
 # print("Inferring variant 3...")
 # infer_variant_3('val', 'features/feature_variant_3_val.txt', need_feature_only=True)
-# infer_variant_3('test_java', 'features/variant_3_test_java.txt', need_feature_only=True)
-# infer_variant_3('test_python', 'features/prob_variant_3_test_python.txt', need_feature_only=True)
+# infer_variant_3('test_java', 'features/feature_variant_3_test_java.txt', need_feature_only=True)
+# infer_variant_3('test_python', 'features/feature_variant_3_test_python.txt', need_feature_only=True)
 #
 # print("Inferring variant 5...")
-# infer_variant_5('val', 'features/feature_prob_variant_5_val.txt', need_feature_only=True)
+# infer_variant_5('val', 'features/feature_variant_5_val.txt', need_feature_only=True)
 # infer_variant_5('test_java', 'features/prob_variant_5_test_java.txt', need_feature_only=True)
 # infer_variant_5('test_python', 'features/prob_variant_5_test_python.txt', need_feature_only=True)
 # print('-' * 64)
-
-print("Inferring variant 6...")
-infer_variant_6('val', 'features/variant_6_epoch_val.txt', need_feature_only=True)
-infer_variant_6('test_java', 'features/variant_6_test_java.txt', need_feature_only=True)
-infer_variant_6('test_python', 'features/variant_6_test_python.txt', need_feature_only=True)
-
-print("Inferring variant 7...")
-infer_variant_7('val', 'features/variant_7_val.txt', need_feature_only=True)
-infer_variant_7('test_java', 'features/variant_7_test_java.txt', need_feature_only=True)
-infer_variant_7('test_python', 'features/variant_7_test_python.txt', need_feature_only=True)
-
-print("Inferring variant 8...")
-infer_variant_8('val', 'features/variant_8_val.txt', need_feature_only=True)
-infer_variant_8('test_java', 'features/variant_8_test_java.txt', need_feature_only=True)
-infer_variant_8('test_python', 'features/_variant_8_test_python.txt', need_feature_only=True)
+#
+# print("Inferring variant 6...")
+# infer_variant_6('val', 'features/feature_variant_6_val.txt', need_feature_only=True)
+# infer_variant_6('test_java', 'features/feature_variant_6_test_java.txt', need_feature_only=True)
+# infer_variant_6('test_python', 'features/feature_variant_6_test_python.txt', need_feature_only=True)
+#
+# print("Inferring variant 7...")
+# infer_variant_7('val', 'features/feature_variant_7_val.txt', need_feature_only=True)
+# infer_variant_7('test_java', 'features/feature_variant_7_test_java.txt', need_feature_only=True)
+# infer_variant_7('test_python', 'features/feature_variant_7_test_python.txt', need_feature_only=True)
+#
+# print("Inferring variant 8...")
+# infer_variant_8('val', 'features/feature_variant_8_val.txt', need_feature_only=True)
+# infer_variant_8('test_java', 'features/feature_variant_8_test_java.txt', need_feature_only=True)
+# infer_variant_8('test_python', 'features/feature_variant_8_test_python.txt', need_feature_only=True)

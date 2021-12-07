@@ -185,11 +185,14 @@ def do_train():
         'features/feature_variant_7_test_python.txt',
         'features/feature_variant_8_test_python.txt'
     ]
+
+    print("Reading data...")
     url_to_features = {}
     url_to_features.update(read_feature_list(val_feature_path))
     url_to_features.update(read_feature_list(test_java_feature_path))
     url_to_features.update(read_feature_list(test_python_feature_path))
 
+    print("Finish reading")
     url_data, label_data = utils.get_data(dataset_name)
 
     feature_data = {}
