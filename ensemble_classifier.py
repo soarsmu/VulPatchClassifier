@@ -258,4 +258,5 @@ def do_train():
           test_python_generator=test_python_generator)
 
 
-
+if __name__ == '__main__':
+    do_train()
