@@ -742,26 +742,6 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
             return x
 
 
-class AttnEnsemble(nn.Module):
-
-    def __init__(self, h_dim):
-
-        super(AttnEnsemble, self).__init__()
-
-        self.h_dim = h_dim
-
-        self.main = nn.Sequential(nn.Linear(h_dim, 24), nn.ReLU(True), nn.Linear(24, 1))
-
-    def forward(self, output_features):
-
-        # batch size
-        b_size = output_features.size(0)
-
-        attn_ene = self.main(output_features.reshape(-1, self.h_dim)) # (b, s, h) -> (b * s, 1)
-
-        return F.softmax(attn_ene.view(b_size, -1), dim=1).unsqueeze(2) # (b*s, 1) -> (b, s, 1)
-
-
 class EnsembleModel(nn.Module):
     def __init__(self):
         super(EnsembleModel, self).__init__()
@@ -783,10 +763,8 @@ class EnsembleModel(nn.Module):
         # need 1 linear layer to project variant 8 feature to 768
         self.l4 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
 
-        self.attn = AttnEnsemble(self.FEATURE_DIM)
-
         # 1 layer to combine
-        self.l5 = nn.Linear(self.FEATURE_DIM, self.FEATURE_DIM)
+        self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
 
         self.relu = nn.ReLU()
 
@@ -798,15 +776,10 @@ class EnsembleModel(nn.Module):
         feature_7 = self.l2(feature_7)
         feature_5 = self.l3(feature_5)
         feature_8 = self.l4(feature_8)
-        # [64, 768]
-        #
-        feature_list = torch.stack([feature_1, feature_2, feature_3,
-                                  feature_5, feature_6, feature_7, feature_8], dim=1)
+        feature_list = torch.cat([feature_1, feature_2, feature_3,
+                                  feature_5, feature_6, feature_7, feature_8], axis=1)
 
-        # batch_size * 7 * dim
-        attn_score = self.attn(feature_list)
-        attn_output = (feature_list * attn_score).sum(dim=1)
-        x = self.drop_out(attn_output)
+        x = self.drop_out(feature_list)
         x = self.l5(x)
         x = self.relu(x)
         x = self.drop_out(x)
