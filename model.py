@@ -798,8 +798,10 @@ class EnsembleModel(nn.Module):
         feature_7 = self.l2(feature_7)
         feature_5 = self.l3(feature_5)
         feature_8 = self.l4(feature_8)
-        feature_list = torch.cat([feature_1, feature_2, feature_3,
-                                  feature_5, feature_6, feature_7, feature_8], axis=1)
+        # [64, 768]
+        #
+        feature_list = torch.stack([feature_1, feature_2, feature_3,
+                                  feature_5, feature_6, feature_7, feature_8], dim=1)
 
         # batch_size * 7 * dim
         attn_score = self.attn(feature_list)
