@@ -193,6 +193,16 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
 
 
 def do_train():
+    train_feature_path = [
+        'features/feature_variant_1_train.txt',
+        'features/feature_variant_2_train.txt',
+        'features/feature_variant_3_train.txt',
+        'features/feature_variant_5_train.txt',
+        'features/feature_variant_6_train.txt',
+        'features/feature_variant_7_train.txt',
+        'features/feature_variant_8_train.txt'
+    ]
+
     val_feature_path = [
         'features/feature_variant_1_val.txt',
         'features/feature_variant_2_val.txt',
@@ -226,7 +236,7 @@ def do_train():
     print("Reading data...")
     url_to_features = {}
     print("Reading val data")
-    url_to_features.update(read_feature_list(val_feature_path))
+    url_to_features.update(read_feature_list(train_feature_path))
     print("Reading test java data")
     url_to_features.update(read_feature_list(test_java_feature_path))
     print("Reading test python data")
@@ -236,12 +246,12 @@ def do_train():
     url_data, label_data = utils.get_data(dataset_name)
 
     feature_data = {}
-    feature_data['val'] = []
+    feature_data['train'] = []
     feature_data['test_java'] = []
     feature_data['test_python'] = []
 
-    for url in url_data['val']:
-        feature_data['val'].append(url_to_features[url])
+    for url in url_data['train']:
+        feature_data['train'].append(url_to_features[url])
 
     for url in url_data['test_java']:
         feature_data['test_java'].append(url_to_features[url])
@@ -255,11 +265,11 @@ def do_train():
     id_to_label = {}
     id_to_feature = {}
 
-    for i, url in enumerate(url_data['val']):
+    for i, url in enumerate(url_data['train']):
         val_ids.append(index)
         id_to_url[index] = url
-        id_to_label[index] = label_data['val'][i]
-        id_to_feature[index] = feature_data['val'][i]
+        id_to_label[index] = label_data['train'][i]
+        id_to_feature[index] = feature_data['train'][i]
         index += 1
 
     for i, url in enumerate(url_data['test_java']):
