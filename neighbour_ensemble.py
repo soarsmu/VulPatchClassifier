@@ -168,10 +168,12 @@ def calculate_norm_and_dot():
 
     print("Calculating dot...")
     dots = {}
-    for i, a in tqdm(enumerate(url_list)):
-        for j, b in enumerate(url_list):
+    for i in tqdm(range(len(url_list))):
+        for j in range(len(url_list)):
             if i < j:
-                dots[a + b] = dot(url_to_features[a], url_to_features[b])
+                a = url_to_features[url_list[i]]
+                b = url_to_features[url_list[j]]
+                dots[a + b] = dot(a, b)
 
     data['norms'] = norms
     data['dots'] = dots
