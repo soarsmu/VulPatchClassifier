@@ -3,14 +3,15 @@ import utils
 import csv
 import json
 from torch import nn
-dataset_name = 'ase_dataset_sept_19_2021.csv'
 from numpy import dot
 from numpy.linalg import norm
 
+dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 
 def calculate_similarity(test_feature, train_feature):
     pass
+
 
 def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
     test_feature = url_to_features[test_url]
@@ -29,13 +30,14 @@ def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
         else:
             neg_list.append((url, calculate_similarity(test_feature, url_to_features[url])))
 
-    pos_neighbour = sorted(pos_list, key=lambda x : x[1], reverse=True)[:5]
-    neg_neighbour = sorted(neg_list, key=lambda x : x[1], reverse=True)[:5]
+    pos_neighbour = sorted(pos_list, key=lambda x: x[1], reverse=True)[:5]
+    neg_neighbour = sorted(neg_list, key=lambda x: x[1], reverse=True)[:5]
 
     data['pos'] = pos_neighbour
     data['neg'] = neg_neighbour
 
     return data
+
 
 def process():
     train_feature_path = [
@@ -89,7 +91,6 @@ def process():
     print("Reading test python data")
     url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
 
-
     print("Finish reading")
     url_data, label_data, url_to_pl = utils.get_data(dataset_name, need_pl=True)
 
@@ -101,6 +102,7 @@ def process():
             url_to_neighbor[url] = find_neighbour(url, url_to_features, url_data, label_data, url_to_pl)
 
     json.dump(url_to_neighbor, open('url_to_neighbour_java.txt', 'w'))
+
 
 def calculate_norm_and_dot():
     train_feature_path = [
@@ -148,7 +150,7 @@ def calculate_norm_and_dot():
     # print("Reading train data")
     # url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path))
     print("Reading val data")
-    url_to_features.update(ensemble_classifier.read_feature_list(val_feature_path))
+    url_to_features.update(ensemble_classifier.read_feature_list(val_feature_path, reshape=True))
     # print("Reading test java data")
     # url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path))
     # print("Reading test python data")
@@ -172,6 +174,7 @@ def calculate_norm_and_dot():
     data['dots'] = dots
 
     json.dump(data, open('url_consine_data.txt', 'w'))
+
 
 if __name__ == '__main__':
     calculate_norm_and_dot()
