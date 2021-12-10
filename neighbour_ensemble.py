@@ -100,11 +100,14 @@ def process():
 
     url_to_neighbor = {}
 
+    count = 0
     for i, url in enumerate(url_data['test_java']):
         if label_data['test_java'][i] == 1:
+            count += 1
             print(url)
             url_to_neighbor[url] = find_neighbour(url, url_to_features, url_data, label_data, url_to_pl)
-
+            if count == 10:
+                break
     json.dump(url_to_neighbor, open('url_to_neighbour_java.txt', 'w'))
 
 
