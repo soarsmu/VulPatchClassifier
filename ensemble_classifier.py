@@ -76,6 +76,7 @@ def read_feature_list(file_path_list, reshape=False):
                 combine = []
                 for feature in features:
                     combine.extend(feature)
+                combine = torch.FloatTensor(combine)
                 url_to_combined[url] = combine
 
         return url_to_combined
