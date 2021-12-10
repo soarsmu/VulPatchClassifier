@@ -69,15 +69,15 @@ def process():
         'features/feature_variant_8_test_java.txt'
     ]
 
-    test_python_feature_path = [
-        'features/feature_variant_1_test_python.txt',
-        'features/feature_variant_2_test_python.txt',
-        'features/feature_variant_3_test_python.txt',
-        'features/feature_variant_5_test_python.txt',
-        'features/feature_variant_6_test_python.txt',
-        'features/feature_variant_7_test_python.txt',
-        'features/feature_variant_8_test_python.txt'
-    ]
+    # test_python_feature_path = [
+    #     'features/feature_variant_1_test_python.txt',
+    #     'features/feature_variant_2_test_python.txt',
+    #     'features/feature_variant_3_test_python.txt',
+    #     'features/feature_variant_5_test_python.txt',
+    #     'features/feature_variant_6_test_python.txt',
+    #     'features/feature_variant_7_test_python.txt',
+    #     'features/feature_variant_8_test_python.txt'
+    # ]
 
     print("Reading data...")
     url_to_features = {}
@@ -85,8 +85,8 @@ def process():
     url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path))
     print("Reading test java data")
     url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path))
-    print("Reading test python data")
-    url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
+    # print("Reading test python data")
+    # url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
 
     print("Finish reading")
     url_data, label_data, url_to_pl = utils.get_data(dataset_name, need_pl=True)

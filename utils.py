@@ -17,7 +17,7 @@ def get_data_from_saved_file(file_info_name, need_pl=False):
 def get_data(dataset_name, need_pl=False):
     file_info_name = 'info_' + dataset_name + '.json'
     if os.path.isfile(file_info_name):
-        return get_data_from_saved_file(file_info_name)
+        return get_data_from_saved_file(file_info_name, need_pl)
 
     print("Reading dataset...")
     df = pd.read_csv(dataset_name)
