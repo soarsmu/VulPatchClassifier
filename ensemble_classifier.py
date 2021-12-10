@@ -64,7 +64,7 @@ def read_feature_list(file_path_list):
         for url, feature in data.items():
             if url not in url_to_feature:
                 url_to_feature[url] = []
-            url_to_feature[url].append(feature)
+            url_to_feature[url].append(torch.FloatTensor(feature))
 
     return url_to_feature
 
