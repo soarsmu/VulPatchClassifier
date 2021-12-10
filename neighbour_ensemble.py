@@ -10,8 +10,11 @@ from tqdm import tqdm
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
 
+cos = nn.CosineSimilarity(dim=0, eps=1e-6)
+
+
 def calculate_similarity(test_feature, train_feature):
-    pass
+    return cos(test_feature, train_feature)
 
 
 def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
@@ -182,4 +185,4 @@ def calculate_norm_and_dot():
 
 
 if __name__ == '__main__':
-    calculate_norm_and_dot()
+    process()

@@ -73,12 +73,11 @@ def read_feature_list(file_path_list, reshape=False):
         if reshape:
             for url in url_to_feature.keys():
                 features = url_to_feature[url]
-                # combine = []
-                # for feature in features:
-                #     combine.extend(feature)
+                combine = []
+                for feature in features:
+                    combine.extend(feature)
 
-                # todo: test cosine similarity with 1 variant first, need to revert later
-                combine = features[0][:10]
+                combine = torch.FloatTensor(combine)
                 url_to_combined[url] = combine
 
         return url_to_combined
