@@ -34,8 +34,8 @@ def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
         else:
             neg_list.append((url, calculate_similarity(test_feature, url_to_features[url])))
 
-    pos_neighbour = sorted(pos_list, key=lambda x: x[1], reverse=True)[:5]
-    neg_neighbour = sorted(neg_list, key=lambda x: x[1], reverse=True)[:5]
+    pos_neighbour = sorted(pos_list, key=lambda x: x[1], reverse=True)[:10]
+    neg_neighbour = sorted(neg_list, key=lambda x: x[1], reverse=True)[:10]
 
     data['pos'] = pos_neighbour
     data['neg'] = neg_neighbour
