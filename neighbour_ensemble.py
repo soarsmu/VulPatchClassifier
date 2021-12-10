@@ -167,7 +167,7 @@ def calculate_norm_and_dot():
     url_list = list(url_to_features.keys())
 
     print("Calculating dot...")
-    dots = []
+    dots = {}
     for i, a in tqdm(enumerate(url_list)):
         for j, b in enumerate(url_list):
             if i < j:
