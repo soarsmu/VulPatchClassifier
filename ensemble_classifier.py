@@ -61,13 +61,20 @@ def read_feature_list(file_path_list, reshape=False):
     url_to_feature = {}
     for file_path in file_path_list:
         data = read_features_from_file(file_path)
-        for url, feature in data.items():
-            if url not in url_to_feature:
-                url_to_feature[url] = []
-            feature = torch.FloatTensor(feature)
-            if reshape:
-                feature = torch.reshape(feature, (feature.shape[0] * feature.shape[1]))
-            url_to_feature[url].append(torch.FloatTensor(feature))
+        for url in data.keys():
+            feature_list = []
+            combined = []
+            url_to_feature[url] = []
+            for feature in data[url]:
+                if not reshape:
+                    feature_list.append(feature)
+                else:
+                    combined.extend(feature)
+
+            if not reshape:
+                url_to_feature[url] = feature_list
+            else:
+                url_to_feature[url] = combined
 
     return url_to_feature
 
