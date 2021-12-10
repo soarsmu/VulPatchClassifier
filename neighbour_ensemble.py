@@ -173,7 +173,7 @@ def calculate_norm_and_dot():
             if i < j:
                 a = url_to_features[url_list[i]]
                 b = url_to_features[url_list[j]]
-                dots[a + b] = dot(a, b)
+                dots[url_list[i] + url_list[j]] = dot(a, b)
 
     data['norms'] = norms
     data['dots'] = dots
