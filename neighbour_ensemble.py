@@ -5,6 +5,7 @@ import json
 from torch import nn
 from numpy import dot
 from numpy.linalg import norm
+from tqdm import tqdm
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
@@ -159,13 +160,15 @@ def calculate_norm_and_dot():
     # calculate dot and norm preemptively
     data = {}
     norms = {}
-    for url, features in url_to_features.items():
+    print("Calculating norm...")
+    for url, features in tqdm(url_to_features.items()):
         norms[url] = norm(features)
 
     url_list = list(url_to_features.keys())
 
+    print("Calculating dot...")
     dots = []
-    for i, a in enumerate(url_list):
+    for i, a in tqdm(enumerate(url_list)):
         for j, b in enumerate(url_list):
             if i < j:
                 dots[a + b] = dot(url_to_features[a], url_to_features[b])
