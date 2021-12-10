@@ -14,7 +14,7 @@ cos = nn.CosineSimilarity(dim=0, eps=1e-6)
 
 
 def calculate_similarity(test_feature, train_feature):
-    return cos(test_feature, train_feature)
+    return cos(test_feature, train_feature).item()
 
 
 def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
