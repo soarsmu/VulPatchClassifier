@@ -82,9 +82,9 @@ def process():
     print("Reading data...")
     url_to_features = {}
     print("Reading val data")
-    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path))
+    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path, reshape=True))
     print("Reading test java data")
-    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path))
+    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path, reshape=True))
     # print("Reading test python data")
     # url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
 
