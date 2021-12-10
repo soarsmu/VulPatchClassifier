@@ -78,7 +78,7 @@ def read_feature_list(file_path_list, reshape=False):
                 #     combine.extend(feature)
 
                 # todo: test cosine similarity with 1 variant first, need to revert later
-                combine = features[0]
+                combine = features[0][:10]
                 url_to_combined[url] = combine
 
         return url_to_combined
