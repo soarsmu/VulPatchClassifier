@@ -102,6 +102,9 @@ def process():
 
     count = 0
     for i, url in enumerate(url_data['test_java']):
+        if label_data[i] == 0:
+            continue
+
         count += 1
         if count % 100 == 0:
             print("finish: {}/{}".format(count, len(url_data['test_java'])))
