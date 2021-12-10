@@ -4,14 +4,17 @@ import os.path
 import json
 
 
-def get_data_from_saved_file(file_info_name):
+def get_data_from_saved_file(file_info_name, need_pl=False):
     with open(file_info_name, 'r') as reader:
         data = json.loads(reader.read())
 
-    return data['url_data'], data['label_data']
+    if need_pl:
+        return data['url_data'], data['label_data'], data['url_to_pl']
+    else:
+        return data['url_data'], data['label_data']
 
 
-def get_data(dataset_name):
+def get_data(dataset_name, need_pl=False):
     file_info_name = 'info_' + dataset_name + '.json'
     if os.path.isfile(file_info_name):
         return get_data_from_saved_file(file_info_name)
@@ -23,7 +26,7 @@ def get_data(dataset_name):
 
     url_train, url_val, url_val_java, url_val_python, url_test_java, url_test_python = [], [], [], [], [], []
     label_train, label_val, label_val_java, label_val_python, label_test_java, label_test_python = [], [], [], [], [], []
-
+    url_to_pl = {}
     for item in tqdm(items):
         commit_id = item[0]
         repo = item[1]
@@ -31,6 +34,7 @@ def get_data(dataset_name):
         partition = item[2]
         pl = item[3]
         label = item[4]
+        url_to_pl[url] = pl
 
         if partition == 'train':
             if url not in url_train:
@@ -63,8 +67,11 @@ def get_data(dataset_name):
     label_data = {'train': label_train, 'val': label_val, 'val_java': label_val_java, 'val_python': label_val_python,
                 'test_java': label_test_java, 'test_python': label_test_python}
 
-    data = {'url_data': url_data, 'label_data': label_data}
+    data = {'url_data': url_data, 'label_data': label_data, 'url_to_pl': url_to_pl}
 
     json.dump(data, open(file_info_name, 'w'))
 
-    return url_data, label_data
+    if need_pl:
+        return url_data, label_data, url_to_pl
+    else:
+        return url_data, label_data
