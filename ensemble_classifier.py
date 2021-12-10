@@ -61,22 +61,26 @@ def read_feature_list(file_path_list, reshape=False):
     url_to_feature = {}
     for file_path in file_path_list:
         data = read_features_from_file(file_path)
-        for url in data.keys():
-            feature_list = []
-            combined = []
-            url_to_feature[url] = []
-            for feature in data[url]:
-                if not reshape:
-                    feature_list.append(feature)
-                else:
-                    combined.extend(feature)
+        for url, feature in data.items():
+            if url not in url_to_feature:
+                url_to_feature[url] = []
+            url_to_feature[url].append(feature)
 
-            if not reshape:
-                url_to_feature[url] = feature_list
-            else:
-                url_to_feature[url] = combined
+    if not reshape:
+        return url_to_feature
+    else:
+        url_to_combined = {}
+        if reshape:
+            for url in url_to_feature.keys():
+                features = url_to_feature[url]
+                combine = []
+                for feature in features:
+                    combine.extend(feature)
+                url_to_combined[url] = combine
 
-    return url_to_feature
+        return url_to_combined
+
+
 
 
 def predict_test_data(model, testing_generator, device, need_prob=False):
