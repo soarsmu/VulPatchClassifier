@@ -4,14 +4,13 @@ import csv
 import json
 from torch import nn
 dataset_name = 'ase_dataset_sept_19_2021.csv'
+from numpy import dot
+from numpy.linalg import norm
 
-
-cos = nn.CosineSimilarity(dim=0, eps=1e-6)
 
 
 def calculate_similarity(test_feature, train_feature):
-    return cos(test_feature, train_feature)
-
+    pass
 
 def find_neighbour(test_url, url_to_features, url_data, label_data, url_to_pl):
     test_feature = url_to_features[test_url]
@@ -69,24 +68,27 @@ def process():
         'features/feature_variant_8_test_java.txt'
     ]
 
-    # test_python_feature_path = [
-    #     'features/feature_variant_1_test_python.txt',
-    #     'features/feature_variant_2_test_python.txt',
-    #     'features/feature_variant_3_test_python.txt',
-    #     'features/feature_variant_5_test_python.txt',
-    #     'features/feature_variant_6_test_python.txt',
-    #     'features/feature_variant_7_test_python.txt',
-    #     'features/feature_variant_8_test_python.txt'
-    # ]
+    test_python_feature_path = [
+        'features/feature_variant_1_test_python.txt',
+        'features/feature_variant_2_test_python.txt',
+        'features/feature_variant_3_test_python.txt',
+        'features/feature_variant_5_test_python.txt',
+        'features/feature_variant_6_test_python.txt',
+        'features/feature_variant_7_test_python.txt',
+        'features/feature_variant_8_test_python.txt'
+    ]
 
     print("Reading data...")
     url_to_features = {}
+    print("Reading train data")
+    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path))
     print("Reading val data")
-    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path, reshape=True))
+    url_to_features.update(ensemble_classifier.read_feature_list(val_feature_path))
     print("Reading test java data")
-    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path, reshape=True))
-    # print("Reading test python data")
-    # url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
+    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path))
+    print("Reading test python data")
+    url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
+
 
     print("Finish reading")
     url_data, label_data, url_to_pl = utils.get_data(dataset_name, need_pl=True)
@@ -100,6 +102,76 @@ def process():
 
     json.dump(url_to_neighbor, open('url_to_neighbour_java.txt', 'w'))
 
+def calculate_norm_and_dot():
+    train_feature_path = [
+        'features/feature_variant_1_train.txt',
+        'features/feature_variant_2_train.txt',
+        'features/feature_variant_3_train.txt',
+        'features/feature_variant_5_train.txt',
+        'features/feature_variant_6_train.txt',
+        'features/feature_variant_7_train.txt',
+        'features/feature_variant_8_train.txt'
+    ]
+
+    val_feature_path = [
+        'features/feature_variant_1_val.txt',
+        'features/feature_variant_2_val.txt',
+        'features/feature_variant_3_val.txt',
+        'features/feature_variant_5_val.txt',
+        'features/feature_variant_6_val.txt',
+        'features/feature_variant_7_val.txt',
+        'features/feature_variant_8_val.txt'
+    ]
+
+    test_java_feature_path = [
+        'features/feature_variant_1_test_java.txt',
+        'features/feature_variant_2_test_java.txt',
+        'features/feature_variant_3_test_java.txt',
+        'features/feature_variant_5_test_java.txt',
+        'features/feature_variant_6_test_java.txt',
+        'features/feature_variant_7_test_java.txt',
+        'features/feature_variant_8_test_java.txt'
+    ]
+
+    test_python_feature_path = [
+        'features/feature_variant_1_test_python.txt',
+        'features/feature_variant_2_test_python.txt',
+        'features/feature_variant_3_test_python.txt',
+        'features/feature_variant_5_test_python.txt',
+        'features/feature_variant_6_test_python.txt',
+        'features/feature_variant_7_test_python.txt',
+        'features/feature_variant_8_test_python.txt'
+    ]
+
+    print("Reading data...")
+    url_to_features = {}
+    # print("Reading train data")
+    # url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path))
+    print("Reading val data")
+    url_to_features.update(ensemble_classifier.read_feature_list(val_feature_path))
+    # print("Reading test java data")
+    # url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path))
+    # print("Reading test python data")
+    # url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
+
+    # calculate dot and norm preemptively
+    data = {}
+    norms = {}
+    for url, features in url_to_features.items():
+        norms[url] = norm(features)
+
+    url_list = list(url_to_features.keys())
+
+    dots = []
+    for i, a in enumerate(url_list):
+        for j, b in enumerate(url_list):
+            if i < j:
+                dots[a + b] = dot(url_to_features[a], url_to_features[b])
+
+    data['norms'] = norms
+    data['dots'] = dots
+
+    json.dump(data, open('url_consine_data.txt', 'w'))
 
 if __name__ == '__main__':
-    process()
+    calculate_norm_and_dot()
