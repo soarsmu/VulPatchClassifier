@@ -55,7 +55,7 @@ def do_train():
     url_data, label_data, url_to_pl, url_to_label = utils.get_data(dataset_name, need_pl=True)
 
     print("Loading neighbor data...")
-    url_to_neighbor = json.load(open('url_to_neighbour_java_test.txt', 'r'))
+    url_to_neighbor = json.load(open('url_to_neighbour_java.txt', 'r'))
     print("Finish loading neighbor data...")
 
     y_pred = []
