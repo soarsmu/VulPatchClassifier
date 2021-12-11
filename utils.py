@@ -9,7 +9,7 @@ def get_data_from_saved_file(file_info_name, need_pl=False):
         data = json.loads(reader.read())
 
     if need_pl:
-        return data['url_data'], data['label_data'], data['url_to_pl']
+        return data['url_data'], data['label_data'], data['url_to_pl'], data['url_to_label']
     else:
         return data['url_data'], data['label_data']
 
@@ -68,7 +68,7 @@ def get_data(dataset_name, need_pl=False):
     label_data = {'train': label_train, 'val': label_val, 'val_java': label_val_java, 'val_python': label_val_python,
                 'test_java': label_test_java, 'test_python': label_test_python}
 
-    data = {'url_data': url_data, 'label_data': label_data, 'url_to_pl': url_to_pl}
+    data = {'url_data': url_data, 'label_data': label_data, 'url_to_pl': url_to_pl, 'url_to_label' : url_to_label}
 
     json.dump(data, open(file_info_name, 'w'))
 
