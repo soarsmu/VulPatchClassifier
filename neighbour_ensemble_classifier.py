@@ -63,7 +63,7 @@ def do_train():
     urls = []
     for test_url, neighbor_item in tqdm(url_to_neighbor.items()):
         test_feature = url_to_features[test_url]
-        test_label = url_to_label[test_feature]
+        test_label = url_to_label[test_url]
         pred_prob = predict_from_neighbor_data(test_feature, neighbor_item, url_to_features)
         y_pred.append(pred_prob)
         y_test.append(test_label)
