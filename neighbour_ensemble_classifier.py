@@ -4,6 +4,7 @@ import utils
 from sklearn.linear_model import LogisticRegression
 from sklearn import metrics
 from tqdm import tqdm
+import csv
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
@@ -59,15 +60,21 @@ def do_train():
 
     y_pred = []
     y_test = []
+    urls = []
     for test_url, neighbor_item in tqdm(url_to_neighbor.items()):
         test_feature = url_to_features[test_url]
         test_label = url_to_label[test_feature]
         pred_prob = predict_from_neighbor_data(test_feature, neighbor_item, url_to_features)
         y_pred.append(pred_prob)
         y_test.append(test_label)
-
+        urls.append(test_url)
     auc = metrics.roc_auc_score(y_true=y_test, y_score=y_pred)
     print("AUC: {}".format(auc))
+
+    with open('neighbour_ensemble_pred_prob.csv', 'w') as file:
+        writer = csv.writer(file)
+        for i, url in enumerate(urls):
+            writer.writerow([url, y_pred[i], y_test[i]])
 
 
 if __name__ == '__main__':
