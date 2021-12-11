@@ -102,8 +102,8 @@ def process():
 
     count = 0
     for i, url in enumerate(url_data['test_java']):
-        if label_data['test_java'][i] == 0:
-            continue
+        # if label_data['test_java'][i] == 0:
+        #     continue
 
         count += 1
         if count % 100 == 0:
