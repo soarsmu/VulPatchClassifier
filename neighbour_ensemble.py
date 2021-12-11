@@ -96,7 +96,7 @@ def process():
     # url_to_features.update(ensemble_classifier.read_feature_list(test_python_feature_path))
 
     print("Finish reading")
-    url_data, label_data, url_to_pl = utils.get_data(dataset_name, need_pl=True)
+    url_data, label_data, url_to_pl, url_to_label = utils.get_data(dataset_name, need_pl=True)
 
     url_to_neighbor = {}
 

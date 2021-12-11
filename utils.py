@@ -27,6 +27,7 @@ def get_data(dataset_name, need_pl=False):
     url_train, url_val, url_val_java, url_val_python, url_test_java, url_test_python = [], [], [], [], [], []
     label_train, label_val, label_val_java, label_val_python, label_test_java, label_test_python = [], [], [], [], [], []
     url_to_pl = {}
+    url_to_label = {}
     for item in tqdm(items):
         commit_id = item[0]
         repo = item[1]
@@ -35,7 +36,7 @@ def get_data(dataset_name, need_pl=False):
         pl = item[3]
         label = item[4]
         url_to_pl[url] = pl
-
+        url_to_label[url] = label
         if partition == 'train':
             if url not in url_train:
                 url_train.append(url)
@@ -72,6 +73,6 @@ def get_data(dataset_name, need_pl=False):
     json.dump(data, open(file_info_name, 'w'))
 
     if need_pl:
-        return url_data, label_data, url_to_pl
+        return url_data, label_data, url_to_pl, url_to_label
     else:
         return url_data, label_data
