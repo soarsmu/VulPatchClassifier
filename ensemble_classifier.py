@@ -57,7 +57,7 @@ def read_features_from_file(file_path):
     return data
 
 
-def read_feature_list(file_path_list, reshape=False):
+def read_feature_list(file_path_list, reshape=False, need_list=False):
     url_to_feature = {}
     for file_path in file_path_list:
         data = read_features_from_file(file_path)
@@ -76,8 +76,8 @@ def read_feature_list(file_path_list, reshape=False):
                 combine = []
                 for feature in features:
                     combine.extend(feature)
-
-                combine = torch.FloatTensor(combine)
+                if not need_list:
+                    combine = torch.FloatTensor(combine)
                 url_to_combined[url] = combine
 
         return url_to_combined

@@ -46,10 +46,10 @@ def do_train():
     print("Reading data...")
     url_to_features = {}
     print("Reading train data")
-    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path, reshape=True))
+    url_to_features.update(ensemble_classifier.read_feature_list(train_feature_path, reshape=True, need_list=True))
 
     print("Reading test java data")
-    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path, reshape=True))
+    url_to_features.update(ensemble_classifier.read_feature_list(test_java_feature_path, reshape=True, need_list=True))
 
     print("Finish reading")
     url_data, label_data, url_to_pl, url_to_label = utils.get_data(dataset_name, need_pl=True)
