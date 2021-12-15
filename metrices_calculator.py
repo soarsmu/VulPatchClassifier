@@ -14,6 +14,8 @@ import csv
 import pandas as pd
 import sys
 import math
+import matplotlib.pyplot as plt
+
 is_test = False
 test_size = 10000
 
@@ -110,6 +112,7 @@ def get_effort(df, lang, threshold, predicted):
     commit_count = 0
     ifa = len(predicted)
     found_vuln = False
+    need_print = True
     for index, item in enumerate(predicted):
         commit_index = item[0]
         loc = item[2]
@@ -117,6 +120,9 @@ def get_effort(df, lang, threshold, predicted):
         rate = (total_inspected + loc) / total_loc
         if rate <= threshold:
             commit_count += 1
+            if need_print and rate > 0.01:
+                need_print = False
+                print("Commit count {}".format(commit_count))
             total_inspected += loc
             if label == 1:
                 if not found_vuln:
@@ -150,12 +156,16 @@ def get_recall_effort(threshold, predicted, total_vul):
     non_vul_indices = []
     commit_count = 0
     total_commit = len(predicted)
+    need_print = True
     for index, item in enumerate(predicted):
         commit_index = item[0]
         label = item[3]
         rate = commit_count/total_commit
         if rate < threshold:
             commit_count += 1
+            if need_print and rate > 0.01:
+                need_print = False
+                print("commit count {}".format(commit_count))
             if label == 1:
                 detected_vulnerabilities += 1
                 predicted_indices.append(commit_index)
@@ -168,7 +178,7 @@ def get_recall_effort(threshold, predicted, total_vul):
 
 
 
-def calculate_effort(predicted_path, lang, threshold):
+def calculate_effort(predicted_path, lang):
     print("Reading dataset")
     df = pd.read_csv(dataset_name)
     df = df[df.partition == 'test']
@@ -190,15 +200,20 @@ def calculate_effort(predicted_path, lang, threshold):
         predicted.append((item[0], item[1], url_to_loc_mod[item[0]], url_to_label[item[0]]))
         url_to_pred[item[0]] = item[1]
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
-    effort_1, predicted_indices, non_vul_indices = get_effort(df, lang, threshold, predicted)
+    effort_1, predicted_indices, non_vul_indices = get_effort(df, lang, 0.05, predicted)
     # with open('vulcurator_non_vul.csv', 'w') as file:
     #     writer = csv.writer(file)
     #     for url in non_vul_indices:
     #         writer.writerow([url, url_to_loc_mod[url], url_to_pred[url]])
 
-    # effort_2, predicted_indices_2 = get_effort(df, lang, 0.2, predicted)
-    print("Effort {}%: {}".format(threshold, effort_1))
-    # print("Effort 20%: {}".format(effort_2))
+    effort_2, _, _ = get_effort(df, lang, 0.1, predicted)
+    effort_3, _, _ = get_effort(df, lang, 0.15, predicted)
+    effort_4, _, _ = get_effort(df, lang, 0.20, predicted)
+
+    print("Effort 5%: {}".format(effort_1))
+    print("Effort 10%: {}".format(effort_2))
+    print("Effort 15%: {}".format(effort_3))
+    print("Effort 20%: {}".format(effort_4))
 
     return predicted_indices
 
@@ -323,9 +338,15 @@ def get_normalized_effort(df, lang, threshold, predicted):
     y_model = []
     x_model.append(0)
     y_model.append(0)
+    commit_count = 0
+    need_print = True
     for index, item in enumerate(predicted):
         loc = item[2]
         label = item[3]
+        commit_count += 1
+        if need_print and (total_inspected + loc) / total_loc > 0.01:
+            need_print = False
+            print("Commit count: {}".format(commit_count))
         if (total_inspected + loc) / total_loc <= threshold:
             total_inspected += loc
             x_model.append(total_inspected / total_loc)
@@ -337,6 +358,14 @@ def get_normalized_effort(df, lang, threshold, predicted):
 
     auc_model = metrics.auc(x=x_model, y=y_model)
 
+    # plt.plot(x_model, y_model)
+    # plt.show()
+
+    # with open("model_popt.csv", 'w') as file:
+    #     writer = csv.writer(file)
+    #     for i, x in enumerate(x_model):
+    #         writer.writerow([x, y_model[i]])
+
     result = (auc_model - auc_worst) / (auc_optimal - auc_worst)
 
     return result
@@ -344,6 +373,17 @@ def get_normalized_effort(df, lang, threshold, predicted):
 
 def get_data():
     print("Reading dataset...")
+    if os.path.isfile("url_to_loc.txt"):
+        url_to_label = {}
+        url_to_loc_mod = {}
+        df = pd.read_csv("url_to_loc.txt", header=None)
+        for item in df.values.tolist():
+            url_to_label[item[0]] = item[1]
+            url_to_loc_mod[item[0]] = item[2]
+
+        return url_to_label, url_to_loc_mod
+
+
     df = pd.read_csv(dataset_name)
     df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD']]
     items = df.to_numpy().tolist()
@@ -368,6 +408,11 @@ def get_data():
         url_to_pl[url] = pl
         url_to_loc_mod[url] += loc_mod
 
+    with open("url_to_loc.txt", 'w') as file:
+        writer = csv.writer(file)
+        for url, label in url_to_label.items():
+            writer.writerow([url, label, url_to_loc_mod[url]])
+
     return url_to_label, url_to_loc_mod
 
 
@@ -391,6 +436,8 @@ def calculate_normalized_effort(predicted_path, lang):
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
 
     print("Normalized Effort 5%: {}".format(get_normalized_effort(df, lang, 0.05, predicted)))
+    print("Normalized Effort 10%: {}".format(get_normalized_effort(df, lang, 0.10, predicted)))
+    print("Normalized Effort 15%: {}".format(get_normalized_effort(df, lang, 0.15, predicted)))
     print("Normalized Effort 20%: {}".format(get_normalized_effort(df, lang, 0.2, predicted)))
 
 
@@ -450,7 +497,7 @@ def test():
 
 
 def calculate_prob(prob, loc):
-    return (prob * (1 + min(1, 1 / math.log(loc, 2)))) / 2
+    return (prob * (1 - min(1, math.log(loc, 308))))
 
 
 def write_new_metric(file_path, dest_path):
@@ -508,16 +555,81 @@ def test_new_metric():
     model_java_auc = calculate_auc(model_new_prob_java_path, url_to_label)
     print("Model java auc: {}".format(model_java_auc))
 
-    model_python_auc = calculate_auc(model_new_prob_python_path, url_to_label)
+    model_python_auc = calculate_auc(model_prob_path_python, url_to_label)
     print("Model python auc: {}".format(model_python_auc))
 
-    calculate_effort(model_new_prob_java_path, 'java', 0.05)
-    calculate_effort(model_new_prob_java_path, 'java', 0.2)
+    calculate_effort(model_new_prob_java_path, 'java')
     calculate_normalized_effort(model_new_prob_java_path, 'java')
 
-    calculate_effort(model_new_prob_python_path, 'python', 0.05)
-    calculate_effort(model_new_prob_python_path, 'python', 0.2)
-    calculate_normalized_effort(model_new_prob_python_path, 'python')
 
 
-test_new_metric()
+def get_pred_data(file_path, url_to_label, url_to_loc_mod):
+    df = pd.read_csv(file_path, header=None)
+    data = []
+    for item in df.values.tolist():
+        url = item[0]
+        if url_to_label[url] == 0:
+            continue
+        data.append((url_to_loc_mod[url], item[1]))
+
+    data = sorted(data, key=lambda x: x[1], reverse=True)
+
+    return data
+
+
+def write_csv(file_path, data):
+    with open(file_path, 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(['LOC', 'PRED_PROB'])
+        for item in data:
+            writer.writerow([item[0], item[1]])
+
+
+# url_to_label, url_to_loc_mod = get_data()
+# x = -1
+# for url, loc in url_to_loc_mod.items():
+#     if url_to_label[url] == 1 and loc > x:
+#         x = loc
+#
+# print(x)
+#
+#
+# huawei_data = get_pred_data('probs/huawei_pred_prob_java.csv', url_to_label, url_to_loc_mod)
+# model_data = get_pred_data('probs/prob_ensemble_classifier_test_java.txt', url_to_label, url_to_loc_mod)
+# write_csv('huawei_pos_loc.csv', huawei_data)
+# write_csv('model_pos_loc.csv', model_data)
+
+
+# calculate_effort('probs/prob_ensemble_classifier_test_java.txt', 'java')
+# calculate_effort('probs/prob_ensemble_classifier_test_java.txt', 'java', 0.02)
+
+
+# calculate_normalized_effort('probs/new_prob_java.txt', 'java')
+
+# df = pd.read_csv('huawei_popt.csv', header=None)
+# x_huawei = []
+# y_huawei = []
+# for item in df.values.tolist():
+#     x_huawei.append(item[0])
+#     y_huawei.append(item[1])
+#
+# df = pd.read_csv('model_popt.csv', header=None)
+# x_model = []
+# y_model = []
+# for item in df.values.tolist():
+#     x_model.append(item[0])
+#     y_model.append(item[1])
+#
+# plt.plot(x_huawei, y_huawei, label='Huawei')
+# plt.plot(x_model, y_model, label='Our model')
+# plt.title("Comparison on cost effort as inspected is increased")
+# plt.xlabel("% Inspected LOC")
+# plt.ylabel("Cost-Effort")
+# plt.legend()
+# plt.show()
+#
+# calculate_effort('probs/huawei_pred_prob_python.csv', 'python')
+# calculate_normalized_effort('probs/huawei_pred_prob_python.csv', 'python')
+
+# url_to_label, url_to_loc_mod = get_data()
+# print(calculate_auc('probs/prob_ensemble_classifier_test_python.txt', url_to_label))
