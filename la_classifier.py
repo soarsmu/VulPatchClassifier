@@ -46,7 +46,7 @@ def do_train():
     X_train = []
     y_train = []
     for url in url_data['train']:
-        X_train.append(url_to_loc_add[url])
+        X_train.append([url_to_loc_add[url]])
         y_train.append(url_to_label[url])
 
     print("Training classifier...")
@@ -59,7 +59,7 @@ def do_train():
     X_test_java = []
     y_test_java = []
     for url in url_data['test_java']:
-        X_test_java.append(url_to_loc_add[url])
+        X_test_java.append([url_to_loc_add[url]])
         y_test_java.append(url_to_label[url])
 
     pred_probs = clf.predict_proba([X_test_java])
@@ -83,7 +83,7 @@ def do_train():
     X_test_python = []
     y_test_python = []
     for url in url_data['test_python']:
-        X_test_python.append(url_to_loc_add[url])
+        X_test_python.append([url_to_loc_add[url]])
         y_test_python.append(url_to_label[url])
 
     pred_probs = clf.predict_proba([X_test_python])
