@@ -73,7 +73,7 @@ def do_train():
     with open(la_java_prob_path, 'w') as file:
         writer = csv.writer(file)
         for i, url in enumerate(url_data['test_java']):
-            writer.writerow([url, pred_probs[i]])
+            writer.writerow([url, pred_probs[i][1]])
 
     calculate_effort(la_java_prob_path, 'java')
     calculate_normalized_effort(la_java_prob_path, 'java')
@@ -97,7 +97,7 @@ def do_train():
     with open(la_python_prob_path, 'w') as file:
         writer = csv.writer(file)
         for i, url in enumerate(url_data['test_python']):
-            writer.writerow([url, pred_probs[i]])
+            writer.writerow([url, pred_probs[i][1]])
 
     calculate_effort(la_java_prob_path, 'python')
     calculate_normalized_effort(la_java_prob_path, 'python')
