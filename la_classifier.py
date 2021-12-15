@@ -62,7 +62,7 @@ def do_train():
         X_test_java.append([url_to_loc_add[url]])
         y_test_java.append(url_to_label[url])
 
-    pred_probs = clf.predict_proba([X_test_java])
+    pred_probs = clf.predict_proba(X_test_java)
     y_pred_java = []
     for prob in pred_probs:
         y_pred_java.append(prob[1])
@@ -86,7 +86,7 @@ def do_train():
         X_test_python.append([url_to_loc_add[url]])
         y_test_python.append(url_to_label[url])
 
-    pred_probs = clf.predict_proba([X_test_python])
+    pred_probs = clf.predict_proba(X_test_python)
     y_pred_python = []
     for prob in pred_probs:
         y_pred_python.append(prob[1])
