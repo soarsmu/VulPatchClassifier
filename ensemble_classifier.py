@@ -209,6 +209,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
 
 
 def do_train(args):
+    global FINAL_MODEL_PATH
     FINAL_MODEL_PATH = args.model_path
     if FINAL_MODEL_PATH is None or FINAL_MODEL_PATH == '':
         raise Exception("Model path must not be None or empty")
