@@ -743,7 +743,7 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
 
 
 class EnsembleModel(nn.Module):
-    def __init__(self):
+    def __init__(self, ablation_study=False, variant_to_drop=-1):
         super(EnsembleModel, self).__init__()
         self.FEATURE_DIM = 768
         self.DENSE_DIM = 128
@@ -764,7 +764,14 @@ class EnsembleModel(nn.Module):
         self.l4 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
 
         # 1 layer to combine
-        self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
+        self.ablation_study = ablation_study
+
+        if not self.ablation_study:
+            self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
+        else:
+            self.l5 = nn.Linear(6 * self.FEATURE_DIM, self.FEATURE_DIM)
+
+        self.variant_to_drop = variant_to_drop
 
         self.relu = nn.ReLU()
 
@@ -776,9 +783,24 @@ class EnsembleModel(nn.Module):
         feature_7 = self.l2(feature_7)
         feature_5 = self.l3(feature_5)
         feature_8 = self.l4(feature_8)
-        feature_list = torch.cat([feature_1, feature_2, feature_3,
-                                  feature_5, feature_6, feature_7, feature_8], axis=1)
+        all_features = [feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8]
+        if self.ablation_study:
+            if self.variant_to_drop == 1:
+                del all_features[0]
+            elif self.variant_to_drop == 2:
+                del all_features[1]
+            elif self.variant_to_drop == 3:
+                del all_features[2]
+            elif self.variant_to_drop == 5:
+                del all_features[3]
+            elif self.variant_to_drop == 6:
+                del all_features[4]
+            elif self.variant_to_drop == 7:
+                del all_features[5]
+            elif self.variant_to_drop == 8:
+                del all_features[6]
 
+        feature_list = torch.cat(all_features, axis=1)
         x = self.drop_out(feature_list)
         x = self.l5(x)
         x = self.relu(x)

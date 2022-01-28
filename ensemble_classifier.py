@@ -14,13 +14,13 @@ from tqdm import tqdm
 import numpy as np
 from sklearn import metrics
 import csv
-
+import argparse
 
 directory = os.path.dirname(os.path.abspath(__file__))
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 
-FINAL_MODEL_PATH = 'model/patch_ensemble_model.sav'
+FINAL_MODEL_PATH = None
 
 TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
@@ -208,7 +208,11 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
     return model
 
 
-def do_train():
+def do_train(args):
+    FINAL_MODEL_PATH = args.model_path
+    if FINAL_MODEL_PATH is None or FINAL_MODEL_PATH == '':
+        raise Exception("Model path must not be None or empty")
+
     train_feature_path = [
         'features/feature_variant_1_train.txt',
         'features/feature_variant_2_train.txt',
@@ -310,7 +314,7 @@ def do_train():
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = EnsembleModel()
+    model = EnsembleModel(args.ablation_study, args.variant_to_drop)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -328,4 +332,17 @@ def do_train():
 
 
 if __name__ == '__main__':
-    do_train()
+    parser = argparse.ArgumentParser(description='Ensemble Classifier')
+    parser.add_argument('--ablation_study',
+                        type=bool,
+                        default=False,
+                        help='Do ablation study or not')
+    parser.add_argument('--variant_to_drop',
+                        type=int,
+                        default=-1,
+                        help='Select index of variant to drop, 1, 2, 3, 5, 6, 7, 8')
+    parser.add_argument('--model_path',
+                        type=str,
+                        help='IMPORTANT select path to save model')
+    args = parser.parse_args()
+    do_train(args)
