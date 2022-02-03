@@ -112,7 +112,6 @@ def get_effort(df, lang, threshold, predicted):
     commit_count = 0
     ifa = len(predicted)
     found_vuln = False
-    need_print = True
     for index, item in enumerate(predicted):
         commit_index = item[0]
         loc = item[2]
@@ -120,9 +119,6 @@ def get_effort(df, lang, threshold, predicted):
         rate = (total_inspected + loc) / total_loc
         if rate <= threshold:
             commit_count += 1
-            if need_print and rate > 0.01:
-                need_print = False
-                print("Commit count {}".format(commit_count))
             total_inspected += loc
             if label == 1:
                 if not found_vuln:
@@ -139,6 +135,8 @@ def get_effort(df, lang, threshold, predicted):
     f1 = 2 * (precision * recall) / (precision + recall)
     pci = commit_count / len(predicted)
 
+    print("Commit count: {}".format(commit_count))
+    print("Vulnerability found: {}".format(detected_vulnerabilities))
     print("Precision: {}".format(precision))
     print("Recall: {}".format(recall))
     print("F1: {}".format(f1))
@@ -200,16 +198,18 @@ def calculate_effort(predicted_path, lang):
         predicted.append((item[0], item[1], url_to_loc_mod[item[0]], url_to_label[item[0]]))
         url_to_pred[item[0]] = item[1]
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
+
+    effort_5, _, _ = get_effort(df, lang, 0.01, predicted)
     effort_1, predicted_indices, non_vul_indices = get_effort(df, lang, 0.05, predicted)
-    # with open('vulcurator_non_vul.csv', 'w') as file:
-    #     writer = csv.writer(file)
-    #     for url in non_vul_indices:
-    #         writer.writerow([url, url_to_loc_mod[url], url_to_pred[url]])
+    with open(predicted_path + '_predicted_indices.txt', 'w') as file:
+        writer = csv.writer(file)
+        for url in predicted_indices:
+            writer.writerow([url])
 
     effort_2, _, _ = get_effort(df, lang, 0.1, predicted)
     effort_3, _, _ = get_effort(df, lang, 0.15, predicted)
     effort_4, _, _ = get_effort(df, lang, 0.20, predicted)
-
+    print("Effort 1%: {}".format(effort_5))
     print("Effort 5%: {}".format(effort_1))
     print("Effort 10%: {}".format(effort_2))
     print("Effort 15%: {}".format(effort_3))
@@ -633,3 +633,57 @@ def write_csv(file_path, data):
 
 # url_to_label, url_to_loc_mod = get_data()
 # print(calculate_auc('probs/prob_ensemble_classifier_test_python.txt', url_to_label))
+
+# print("Variant 1...")
+# calculate_effort('probs/prob_variant_1_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 2...")
+# calculate_effort('probs/prob_variant_2_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 3...")
+# calculate_effort('probs/prob_variant_3_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 5...")
+# calculate_effort('probs/prob_variant_5_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 6...")
+# calculate_effort('probs/prob_variant_6_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 7...")
+# calculate_effort('probs/prob_variant_7_finetune_1_epoch_test_python.txt', 'python')
+#
+# print("Variant 8...")
+# calculate_effort('probs/prob_variant_8_finetune_1_epoch_test_python.txt', 'python')
+
+
+# java_predicted_paths = [
+#     'probs/prob_variant_1_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_2_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_3_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_5_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_6_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_7_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+#     'probs/prob_variant_8_finetune_1_epoch_test_java.txt_predicted_indices.txt',
+# ]
+#
+# python_predicted_paths = [
+#     'probs/prob_variant_1_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_2_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_3_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_5_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_6_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_7_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+#     'probs/prob_variant_8_finetune_1_epoch_test_python.txt_predicted_indices.txt',
+# ]
+#
+# vuln_set = set()
+# for path in python_predicted_paths:
+#     with open(path, 'r') as file:
+#         lines = file.read().splitlines()
+#         for line in lines:
+#             vuln_set.add(line)
+# print(len(vuln_set))
+
+
+calculate_effort('probs/new_prob_python.txt', 'python')
+

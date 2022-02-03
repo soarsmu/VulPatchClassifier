@@ -21,6 +21,8 @@ dataset_name = 'ase_dataset_sept_19_2021.csv'
 # dataset_name = 'huawei_sub_dataset.csv'
 
 FINAL_MODEL_PATH = None
+JAVA_RESULT_PATH = None
+PYTHON_RESULT_PATH = None
 
 TRAIN_BATCH_SIZE = 128
 VALIDATION_BATCH_SIZE = 128
@@ -180,7 +182,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
                                                        device=device, need_prob=True)
 
         if epoch == number_of_epochs - 1:
-            write_prob_to_file('probs/prob_ensemble_classifier_test_java.txt', urls, probs)
+            write_prob_to_file(JAVA_RESULT_PATH, urls, probs)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
@@ -194,7 +196,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
                                                        device=device, need_prob=True)
 
         if epoch == number_of_epochs - 1:
-            write_prob_to_file('probs/prob_ensemble_classifier_test_python.txt', urls, probs)
+            write_prob_to_file(PYTHON_RESULT_PATH, urls, probs)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
@@ -210,9 +212,20 @@ def train(model, learning_rate, number_of_epochs, training_generator, test_java_
 
 def do_train(args):
     global FINAL_MODEL_PATH
+    global JAVA_RESULT_PATH
+    global PYTHON_RESULT_PATH
+
     FINAL_MODEL_PATH = args.model_path
     if FINAL_MODEL_PATH is None or FINAL_MODEL_PATH == '':
         raise Exception("Model path must not be None or empty")
+
+    JAVA_RESULT_PATH = args.java_result_path
+    if JAVA_RESULT_PATH is None or JAVA_RESULT_PATH == '':
+        raise Exception("Java result path must not be None or empty")
+
+    PYTHON_RESULT_PATH = args.python_result_path
+    if PYTHON_RESULT_PATH is None or PYTHON_RESULT_PATH == '':
+        raise Exception("Java result path must not be None or empty")
 
     train_feature_path = [
         'features/feature_variant_1_train.txt',
@@ -345,5 +358,11 @@ if __name__ == '__main__':
     parser.add_argument('--model_path',
                         type=str,
                         help='IMPORTANT select path to save model')
+    parser.add_argument('--java_result_path',
+                       type=str,
+                       help='path to save prediction for Java projects')
+    parser.add_argument('--python_result_path',
+                        type=str,
+                        help='path to save prediction for Python projects')
     args = parser.parse_args()
     do_train(args)
