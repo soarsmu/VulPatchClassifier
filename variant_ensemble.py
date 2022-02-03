@@ -501,10 +501,7 @@ def get_combined_ensemble_model():
 # infer_variant_2('test_python', 'features/feature_variant_2_test_python.txt', need_feature_only=True)
 # print('-' * 64)
 #
-# print("Inferring variant 3...")
-# infer_variant_3('train', 'features/feature_variant_3_train.txt', need_feature_only=True)
-# infer_variant_3('test_java', 'features/feature_variant_3_test_java.txt', need_feature_only=True)
-# infer_variant_3('test_python', 'features/feature_variant_3_test_python.txt', need_feature_only=True)
+
 #
 # print("Inferring variant 5...")
 # infer_variant_5('train', 'features/feature_variant_5_train.txt', need_feature_only=True)
@@ -522,7 +519,12 @@ def get_combined_ensemble_model():
 # infer_variant_7('test_java', 'features/feature_variant_7_test_java.txt', need_feature_only=True)
 # infer_variant_7('test_python', 'features/feature_variant_7_test_python.txt', need_feature_only=True)
 
-print("Inferring variant 8...")
-infer_variant_8('train', 'features/feature_variant_8_train.txt', need_feature_only=True)
+# print("Inferring variant 8...")
+# infer_variant_8('train', 'features/feature_variant_8_train.txt', need_feature_only=True)
 # infer_variant_8('test_java', 'features/feature_variant_8_test_java.txt', need_feature_only=True)
 # infer_variant_8('test_python', 'features/feature_variant_8_test_python.txt', need_feature_only=True)
+
+print("Inferring variant 3...")
+# infer_variant_3('train', 'features/feature_variant_3_train.txt', need_feature_only=True)
+infer_variant_3('test_java', 'probs/prob_variant_3_finetune_1_epoch_test_java.txt', need_feature_only=False)
+infer_variant_3('test_python', 'probs/prob_variant_3_finetune_1_epoch_test_python.txt', need_feature_only=False)
