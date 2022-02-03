@@ -108,7 +108,7 @@ def get_effort(df, lang, threshold, predicted):
     detected_vulnerabilities = 0
     predicted_indices = []
     non_vul_indices = []
-    print("Total vulnerabilities: {}".format(total_vulnerabilities))
+    # print("Total vulnerabilities: {}".format(total_vulnerabilities))
     commit_count = 0
     ifa = len(predicted)
     found_vuln = False
@@ -135,13 +135,13 @@ def get_effort(df, lang, threshold, predicted):
     f1 = 2 * (precision * recall) / (precision + recall)
     pci = commit_count / len(predicted)
 
-    print("Commit count: {}".format(commit_count))
-    print("Vulnerability found: {}".format(detected_vulnerabilities))
-    print("Precision: {}".format(precision))
-    print("Recall: {}".format(recall))
-    print("F1: {}".format(f1))
-    print("PIC: {}". format(pci))
-    print("IFA: {}".format(ifa))
+    # print("Commit count: {}".format(commit_count))
+    # print("Vulnerability found: {}".format(detected_vulnerabilities))
+    # print("Precision: {}".format(precision))
+    # print("Recall: {}".format(recall))
+    # print("F1: {}".format(f1))
+    # print("PIC: {}". format(pci))
+    # print("IFA: {}".format(ifa))
 
     return detected_vulnerabilities / total_vulnerabilities, predicted_indices, non_vul_indices
 
@@ -209,7 +209,7 @@ def calculate_effort(predicted_path, lang):
     effort_2, _, _ = get_effort(df, lang, 0.1, predicted)
     effort_3, _, _ = get_effort(df, lang, 0.15, predicted)
     effort_4, _, _ = get_effort(df, lang, 0.20, predicted)
-    print("Effort 1%: {}".format(effort_5))
+    # print("Effort 1%: {}".format(effort_5))
     print("Effort 5%: {}".format(effort_1))
     print("Effort 10%: {}".format(effort_2))
     print("Effort 15%: {}".format(effort_3))
@@ -346,7 +346,7 @@ def get_normalized_effort(df, lang, threshold, predicted):
         commit_count += 1
         if need_print and (total_inspected + loc) / total_loc > 0.01:
             need_print = False
-            print("Commit count: {}".format(commit_count))
+            # print("Commit count: {}".format(commit_count))
         if (total_inspected + loc) / total_loc <= threshold:
             total_inspected += loc
             x_model.append(total_inspected / total_loc)
@@ -529,15 +529,15 @@ def calculate_auc(prob_path, url_to_label):
 
     return auc
 
-def test_new_metric():
-    huawei_prob_path_java = 'probs/huawei_pred_prob_java.csv'
-    huawei_prob_path_python = 'probs/huawei_pred_prob_python.csv'
-    model_prob_path_java = 'probs/prob_ensemble_classifier_test_java.txt'
-    model_prob_path_python = 'probs/prob_ensemble_classifier_test_python.txt'
-    huawei_new_prob_java_path = 'probs/huawei_new_prob_java.txt'
-    huawei_new_prob_python_path = 'probs/huawei_new_prob_python.txt'
-    model_new_prob_java_path = 'probs/new_prob_java.txt'
-    model_new_prob_python_path = 'probs/new_prob_python.txt'
+def test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob_java_path, model_new_prob_python_path):
+    # huawei_prob_path_java = 'probs/huawei_pred_prob_java.csv'
+    # huawei_prob_path_python = 'probs/huawei_pred_prob_python.csv'
+    # model_prob_path_java = 'probs/prob_ensemble_classifier_test_java.txt'
+    # model_prob_path_python = 'probs/prob_ensemble_classifier_test_python.txt'
+    # huawei_new_prob_java_path = 'probs/huawei_new_prob_java.txt'
+    # huawei_new_prob_python_path = 'probs/huawei_new_prob_python.txt'
+    # model_new_prob_java_path = 'probs/new_prob_java.txt'
+    # model_new_prob_python_path = 'probs/new_prob_python.txt'
 
     # write_new_metric(huawei_prob_path_java, huawei_new_prob_java_path)
     # write_new_metric(huawei_prob_path_python, huawei_new_prob_python_path)
@@ -555,13 +555,18 @@ def test_new_metric():
     model_java_auc = calculate_auc(model_new_prob_java_path, url_to_label)
     print("Model java auc: {}".format(model_java_auc))
 
-    model_python_auc = calculate_auc(model_prob_path_python, url_to_label)
+    model_python_auc = calculate_auc(model_new_prob_python_path, url_to_label)
     print("Model python auc: {}".format(model_python_auc))
 
+    print("Java effort")
     calculate_effort(model_new_prob_java_path, 'java')
     calculate_normalized_effort(model_new_prob_java_path, 'java')
 
+    print("Python effort")
+    calculate_effort(model_new_prob_python_path, 'python')
+    calculate_normalized_effort(model_new_prob_python_path, 'python')
 
+    print(64 * '-')
 
 def get_pred_data(file_path, url_to_label, url_to_loc_mod):
     df = pd.read_csv(file_path, header=None)
@@ -684,6 +689,8 @@ def write_csv(file_path, data):
 #             vuln_set.add(line)
 # print(len(vuln_set))
 
-
-calculate_effort('probs/new_prob_python.txt', 'python')
-
+model_prob_path_java = 'probs/prob_ablation_1_java.txt'
+model_prob_path_python = 'probs/prob_ablation_1_python.txt'
+model_new_prob_java_path = 'probs/prob_ablation_1_java_new.txt'
+model_new_prob_python_path = 'probs/prob_ablation_1_python_new.txt'
+test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob_java_path, model_new_prob_python_path)
