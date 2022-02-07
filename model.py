@@ -743,7 +743,7 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
 
 
 class EnsembleModel(nn.Module):
-    def __init__(self, ablation_study=False, variant_to_drop=[]):
+    def __init__(self, ablation_study=False, variant_to_drop=None):
         super(EnsembleModel, self).__init__()
         self.FEATURE_DIM = 768
         self.DENSE_DIM = 128
@@ -788,13 +788,13 @@ class EnsembleModel(nn.Module):
             tmp = all_features
             all_features = []
             drop = []
-            drop.append(True) if 1 in self.variant_to_drop else False
-            drop.append(True) if 2 in self.variant_to_drop else False
-            drop.append(True) if 3 in self.variant_to_drop else False
-            drop.append(True) if 5 in self.variant_to_drop else False
-            drop.append(True) if 6 in self.variant_to_drop else False
-            drop.append(True) if 7 in self.variant_to_drop else False
-            drop.append(True) if 8 in self.variant_to_drop else False
+            drop.append(True) if 1 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 2 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 3 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 5 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 6 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 7 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 8 in self.variant_to_drop else drop.append(False)
             for i in range(len(drop)):
                 if not drop[i]:
                     all_features.append(tmp[i])
