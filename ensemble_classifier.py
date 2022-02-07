@@ -358,7 +358,7 @@ if __name__ == '__main__':
     parser.add_argument('-v',
                         '--variant_to_drop',
                         action='append',
-                        default=-1,
+                        required=True,
                         help='Select index of variant to drop, 1, 2, 3, 5, 6, 7, 8')
     parser.add_argument('--model_path',
                         type=str,
