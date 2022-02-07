@@ -227,6 +227,10 @@ def do_train(args):
     if PYTHON_RESULT_PATH is None or PYTHON_RESULT_PATH == '':
         raise Exception("Java result path must not be None or empty")
 
+    variant_to_drop = []
+    for variant in args.variant_to_drop:
+        variant_to_drop.append(int(variant))
+
     train_feature_path = [
         'features/feature_variant_1_train.txt',
         'features/feature_variant_2_train.txt',
@@ -328,7 +332,7 @@ def do_train(args):
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = EnsembleModel(args.ablation_study, args.variant_to_drop)
+    model = EnsembleModel(args.ablation_study, variant_to_drop)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -351,8 +355,9 @@ if __name__ == '__main__':
                         type=bool,
                         default=False,
                         help='Do ablation study or not')
-    parser.add_argument('--variant_to_drop',
-                        type=int,
+    parser.add_argument('-v',
+                        '--variant_to_drop',
+                        action='append',
                         default=-1,
                         help='Select index of variant to drop, 1, 2, 3, 5, 6, 7, 8')
     parser.add_argument('--model_path',

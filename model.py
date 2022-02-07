@@ -743,7 +743,7 @@ class VariantSeventFineTuneOnlyClassifier(nn.Module):
 
 
 class EnsembleModel(nn.Module):
-    def __init__(self, ablation_study=False, variant_to_drop=-1):
+    def __init__(self, ablation_study=False, variant_to_drop=[]):
         super(EnsembleModel, self).__init__()
         self.FEATURE_DIM = 768
         self.DENSE_DIM = 128
@@ -769,7 +769,7 @@ class EnsembleModel(nn.Module):
         if not self.ablation_study:
             self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
         else:
-            self.l5 = nn.Linear(6 * self.FEATURE_DIM, self.FEATURE_DIM)
+            self.l5 = nn.Linear((7 - len(variant_to_drop)) * self.FEATURE_DIM, self.FEATURE_DIM)
 
         self.variant_to_drop = variant_to_drop
 
@@ -785,21 +785,19 @@ class EnsembleModel(nn.Module):
         feature_8 = self.l4(feature_8)
         all_features = [feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8]
         if self.ablation_study:
-            if self.variant_to_drop == 1:
-                del all_features[0]
-            elif self.variant_to_drop == 2:
-                del all_features[1]
-            elif self.variant_to_drop == 3:
-                del all_features[2]
-            elif self.variant_to_drop == 5:
-                del all_features[3]
-            elif self.variant_to_drop == 6:
-                del all_features[4]
-            elif self.variant_to_drop == 7:
-                del all_features[5]
-            elif self.variant_to_drop == 8:
-                del all_features[6]
-
+            tmp = all_features
+            all_features = []
+            drop = []
+            drop.append(True) if 1 in self.variant_to_drop else False
+            drop.append(True) if 2 in self.variant_to_drop else False
+            drop.append(True) if 3 in self.variant_to_drop else False
+            drop.append(True) if 5 in self.variant_to_drop else False
+            drop.append(True) if 6 in self.variant_to_drop else False
+            drop.append(True) if 7 in self.variant_to_drop else False
+            drop.append(True) if 8 in self.variant_to_drop else False
+            for i in range(len(drop)):
+                if not drop[i]:
+                    all_features.append(tmp[i])
         feature_list = torch.cat(all_features, axis=1)
         x = self.drop_out(feature_list)
         x = self.l5(x)
