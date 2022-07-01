@@ -200,15 +200,31 @@ def calculate_effort(predicted_path, lang):
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
 
     effort_5, _, _ = get_effort(df, lang, 0.01, predicted)
+
     effort_1, predicted_indices, non_vul_indices = get_effort(df, lang, 0.05, predicted)
-    with open(predicted_path + '_predicted_indices.txt', 'w') as file:
+    with open(predicted_path + '_predicted_indices_cost_effort_5.txt', 'w') as file:
         writer = csv.writer(file)
         for url in predicted_indices:
             writer.writerow([url])
 
-    effort_2, _, _ = get_effort(df, lang, 0.1, predicted)
-    effort_3, _, _ = get_effort(df, lang, 0.15, predicted)
-    effort_4, _, _ = get_effort(df, lang, 0.20, predicted)
+    effort_2, predicted_indices, _ = get_effort(df, lang, 0.1, predicted)
+    with open(predicted_path + '_predicted_indices_cost_effort_10.txt', 'w') as file:
+        writer = csv.writer(file)
+        for url in predicted_indices:
+            writer.writerow([url])
+    
+    effort_3, predicted_indices, _ = get_effort(df, lang, 0.15, predicted)
+    with open(predicted_path + '_predicted_indices_cost_effort_15.txt', 'w') as file:
+        writer = csv.writer(file)
+        for url in predicted_indices:
+            writer.writerow([url])
+
+    effort_4, predicted_indices, _ = get_effort(df, lang, 0.20, predicted)
+    with open(predicted_path + '_predicted_indices_cost_effort_20.txt', 'w') as file:
+        writer = csv.writer(file)
+        for url in predicted_indices:
+            writer.writerow([url])
+
     # print("Effort 1%: {}".format(effort_5))
     print("Effort 5%: {}".format(effort_1))
     print("Effort 10%: {}".format(effort_2))
@@ -558,13 +574,13 @@ def test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob
     model_python_auc = calculate_auc(model_new_prob_python_path, url_to_label)
     print("Model python auc: {}".format(model_python_auc))
 
-    print("Java effort")
-    calculate_effort(model_new_prob_java_path, 'java')
-    calculate_normalized_effort(model_new_prob_java_path, 'java')
+    # print("Java effort")
+    # calculate_effort(model_new_prob_java_path, 'java')
+    # calculate_normalized_effort(model_new_prob_java_path, 'java')
 
-    print("Python effort")
-    calculate_effort(model_new_prob_python_path, 'python')
-    calculate_normalized_effort(model_new_prob_python_path, 'python')
+    # print("Python effort")
+    # calculate_effort(model_new_prob_python_path, 'python')
+    # calculate_normalized_effort(model_new_prob_python_path, 'python')
 
     print(64 * '-')
 
@@ -689,8 +705,24 @@ def write_csv(file_path, data):
 #             vuln_set.add(line)
 # print(len(vuln_set))
 
-model_prob_path_java = 'probs/prob_ablation_1_java.txt'
-model_prob_path_python = 'probs/prob_ablation_1_python.txt'
-model_new_prob_java_path = 'probs/prob_ablation_1_java_new.txt'
-model_new_prob_python_path = 'probs/prob_ablation_1_python_new.txt'
-test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob_java_path, model_new_prob_python_path)
+# model_prob_path_java = 'probs/prob_ablation_1_java.txt'
+# model_prob_path_python = 'probs/prob_ablation_1_python.txt'
+# model_new_prob_java_path = 'probs/prob_ablation_1_java_new.txt'
+# model_new_prob_python_path = 'probs/prob_ablation_1_python_new.txt'
+
+
+# calculate_effort('probs/new_prob_python.txt', 'python')
+
+# huawei_prob_path_java = 'probs/huawei_pred_prob_java.csv'
+# huawei_prob_path_python = 'probs/huawei_pred_prob_python.csv'
+
+# calculate_effort(huawei_prob_path_python, 'python')
+
+cnn_model_prob_path_java = 'probs/prob_ensemble_classifier_file_level_cnn_test_java.txt'
+cnn_model_prob_path_python = 'probs/prob_ensemble_classifier_file_level_cnn_test_python.txt'
+cnn_model_prob_path_java_new = 'probs/prob_ensemble_classifier_file_level_cnn_test_java_new.txt'
+cnn_model_prob_path_python_new = 'probs/prob_ensemble_classifier_file_level_cnn_test_python_new.txt'
+
+# test_new_metric(cnn_model_prob_path_java, cnn_model_prob_path_python, cnn_model_prob_path_java_new, cnn_model_prob_path_python_new)
+
+calculate_normalized_effort(cnn_model_prob_path_python_new, 'python')

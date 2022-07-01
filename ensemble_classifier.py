@@ -1,9 +1,11 @@
+# giang temporarily swith EnsembleModel to EnsembleModelFileLevelCNN
+
 import os
 import json
 import utils
 from torch.utils.data import DataLoader
 from entities import EnsembleDataset
-from model import EnsembleModel
+from model import EnsembleModelFileLevelCNN
 import torch
 from torch import cuda
 from torch import nn as nn
@@ -228,52 +230,53 @@ def do_train(args):
         raise Exception("Java result path must not be None or empty")
 
     variant_to_drop = []
-    for variant in args.variant_to_drop:
-        variant_to_drop.append(int(variant))
+    if args.variant_to_drop is not None:
+        for variant in args.variant_to_drop:
+            variant_to_drop.append(int(variant))
 
     train_feature_path = [
         'features/feature_variant_1_train.txt',
-        'features/feature_variant_2_train.txt',
+        'features/feature_variant_2_cnn_train.txt',
         'features/feature_variant_3_train.txt',
         'features/feature_variant_5_train.txt',
-        'features/feature_variant_6_train.txt',
+        'features/feature_variant_6_cnn_train.txt',
         'features/feature_variant_7_train.txt',
         'features/feature_variant_8_train.txt'
     ]
 
     val_feature_path = [
         'features/feature_variant_1_val.txt',
-        'features/feature_variant_2_val.txt',
+        'features/feature_variant_2_cnn_val.txt',
         'features/feature_variant_3_val.txt',
         'features/feature_variant_5_val.txt',
-        'features/feature_variant_6_val.txt',
+        'features/feature_variant_6_cnn_val.txt',
         'features/feature_variant_7_val.txt',
         'features/feature_variant_8_val.txt'
     ]
 
     test_java_feature_path = [
         'features/feature_variant_1_test_java.txt',
-        'features/feature_variant_2_test_java.txt',
+        'features/feature_variant_2_cnn_test_java.txt',
         'features/feature_variant_3_test_java.txt',
         'features/feature_variant_5_test_java.txt',
-        'features/feature_variant_6_test_java.txt',
+        'features/feature_variant_6_cnn_test_java.txt',
         'features/feature_variant_7_test_java.txt',
         'features/feature_variant_8_test_java.txt'
     ]
 
     test_python_feature_path = [
         'features/feature_variant_1_test_python.txt',
-        'features/feature_variant_2_test_python.txt',
+        'features/feature_variant_2_cnn_test_python.txt',
         'features/feature_variant_3_test_python.txt',
         'features/feature_variant_5_test_python.txt',
-        'features/feature_variant_6_test_python.txt',
+        'features/feature_variant_6_cnn_test_python.txt',
         'features/feature_variant_7_test_python.txt',
         'features/feature_variant_8_test_python.txt'
     ]
 
     print("Reading data...")
     url_to_features = {}
-    print("Reading val data")
+    print("Reading train data")
     url_to_features.update(read_feature_list(train_feature_path))
     print("Reading test java data")
     url_to_features.update(read_feature_list(test_java_feature_path))
@@ -332,7 +335,7 @@ def do_train(args):
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = EnsembleModel(args.ablation_study, variant_to_drop)
+    model = EnsembleModelFileLevelCNN(args.ablation_study, variant_to_drop)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -358,7 +361,7 @@ if __name__ == '__main__':
     parser.add_argument('-v',
                         '--variant_to_drop',
                         action='append',
-                        required=True,
+                        required=False,
                         help='Select index of variant to drop, 1, 2, 3, 5, 6, 7, 8')
     parser.add_argument('--model_path',
                         type=str,

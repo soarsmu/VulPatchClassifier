@@ -40,6 +40,8 @@ VARIANT_FIVE_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_5'
 VARIANT_SIX_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_6'
 VARIANT_SEVEN_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_7'
 VARIANT_EIGHT_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_8'
+VARIANT_TWO_CNN_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_2_cnn'
+VARIANT_SIX_CNN_EMBEDDINGS_DIRECTORY = '../finetuned_embeddings/variant_6_cnn'
 
 
 VARIANT_ONE_MODEL_PATH = 'model/patch_variant_1_finetune_1_epoch_best_model.sav'
@@ -49,7 +51,11 @@ VARIANT_FIVE_MODEL_PATH = 'model/patch_variant_5_finetune_1_epoch_best_model.sav
 VARIANT_SIX_MODEL_PATH = 'model/patch_variant_6_finetune_1_epoch_best_model.sav'
 VARIANT_SEVEN_MODEL_PATH = 'model/patch_variant_7_finetune_1_epoch_best_model.sav'
 VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_finetune_1_epoch_best_model.sav'
-TEST_BATCH_SIZE = 128
+
+VARIANT_TWO_CNN_MODEL_PATH = 'model/patch_variant_2_cnn_best_model.sav'
+VARIANT_SIX_CNN_MODEL_PATH = 'model/patch_variant_6_cnn_best_model.sav'
+
+TEST_BATCH_SIZE = 512
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 use_cuda = cuda.is_available()
@@ -145,6 +151,41 @@ def infer_variant_2(partition, result_file_path, need_feature_only=False):
         write_prob_to_file(result_file_path, urls, probs)
 
 
+def infer_variant_2_cnn(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+    model = VariantThreeClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_TWO_CNN_MODEL_PATH))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantThreeDataset(ids, id_to_label, id_to_url, VARIANT_TWO_CNN_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_3.custom_collate)
+
+    if need_feature_only:
+        auc, urls, features = variant_3.predict_test_data(model, generator, device, need_prob=True,
+                                                          need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_3.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs)
+
+
+
 def infer_variant_3(partition, result_file_path, need_feature_only=False):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
@@ -237,6 +278,41 @@ def infer_variant_6(partition, result_file_path, need_feature_only=False):
         write_feature_to_file(result_file_path, urls, features)
     else:
         precision, recall, f1, auc, urls, probs = variant_6.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs)
+
+
+def infer_variant_6_cnn(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+
+    model = VariantSevenClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_SIX_CNN_MODEL_PATH))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantSevenDataset(ids, id_to_label, id_to_url, VARIANT_SIX_CNN_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_7.custom_collate)
+
+    if need_feature_only:
+        auc, urls, features = variant_7.predict_test_data(model, generator, device, need_prob=True,
+                                                          need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_7.predict_test_data(model, generator, device, need_prob=True)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
@@ -524,7 +600,18 @@ def get_combined_ensemble_model():
 # infer_variant_8('test_java', 'features/feature_variant_8_test_java.txt', need_feature_only=True)
 # infer_variant_8('test_python', 'features/feature_variant_8_test_python.txt', need_feature_only=True)
 
-print("Inferring variant 3...")
+# print("Inferring variant 3...")
 # infer_variant_3('train', 'features/feature_variant_3_train.txt', need_feature_only=True)
-infer_variant_3('test_java', 'probs/prob_variant_3_finetune_1_epoch_test_java.txt', need_feature_only=False)
-infer_variant_3('test_python', 'probs/prob_variant_3_finetune_1_epoch_test_python.txt', need_feature_only=False)
+# infer_variant_3('test_java', 'probs/prob_variant_3_finetune_1_epoch_test_java.txt', need_feature_only=False)
+# infer_variant_3('test_python', 'probs/prob_variant_3_finetune_1_epoch_test_python.txt', need_feature_only=False)
+
+print("Inferring variant 2 CNN...")
+infer_variant_2_cnn('train', 'features/feature_variant_2_cnn_train.txt', need_feature_only=True)
+infer_variant_2_cnn('test_java', 'features/feature_variant_2_cnn_test_java.txt', need_feature_only=True)
+infer_variant_2_cnn('test_python', 'features/feature_variant_2_cnn_test_python.txt', need_feature_only=True)
+
+
+print("Inferring variant 6 CNN...")
+infer_variant_6_cnn('train', 'features/feature_variant_6_cnn_train.txt', need_feature_only=True)
+infer_variant_6_cnn('test_java', 'features/feature_variant_6_cnn_test_java.txt', need_feature_only=True)
+infer_variant_6_cnn('test_python', 'features/feature_variant_6_cnn_test_python.txt', need_feature_only=True)

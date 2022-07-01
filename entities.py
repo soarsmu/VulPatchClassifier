@@ -389,6 +389,7 @@ class VariantTwoFineTuneDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, input_id_list, mask_list, y
+        
 
 class VariantSixFineTuneDataset(Dataset):
     def __init__(self, list_IDs, labels, id_to_url, id_to_added_input_list, id_to_added_mask_list, id_to_removed_input_list, id_to_removed_mask_list):
