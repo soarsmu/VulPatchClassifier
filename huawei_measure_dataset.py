@@ -9,9 +9,8 @@ from sklearn import metrics
 
 from transformers import RobertaTokenizer
 
-import huawei_pure_classifier
 from sklearn.linear_model import LogisticRegression
-
+import preprocess_variant_3
 
 dataset_name = 'ase_dataset_sept_19_2021.csv'
 
@@ -969,10 +968,6 @@ def get_url_to_no_files():
     return url_to_files
 
 
-url_to_files = get_url_to_no_files()
-url_to_added_count, url_to_removed_count = read_url_to_token_count()
-
-
 def filter_row_by_no_files(row):
     url = 'https://github.com/' + row['repo'] + '/commit/' + row['commit_id']
     if url_to_files[url] > 2 and url_to_added_count[url] <= 512 and url_to_removed_count[url] <= 512:
@@ -1019,4 +1014,49 @@ def read_patch_classifier_result_by_file():
     print("PR_AUC: {}".format(metrics.average_precision_score(y_score=y_prob, y_true=y_true)))
 
 
-read_patch_classifier_result_by_file()
+
+def write_url_to_hunk_count():
+    print("Reading dataset...")
+    df = pd.read_csv(dataset_name)
+    df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD', 'filename']]
+    items = df.to_numpy().tolist()
+
+    url_to_partition = {}
+    url_to_label = {}
+    url_to_pl = {}
+    url_to_hunk_count = {}
+
+    for item in items:
+        commit_id = item[0]
+        repo = item[1]
+        url = repo + '/commit/' + commit_id
+        partition = item[2]
+        diff = item[3]
+        label = item[4]
+        pl = item[5]
+
+        if url not in url_to_hunk_count:
+            url_to_hunk_count[url] = 0
+
+        url_to_hunk_count[url] += len(preprocess_variant_3.get_hunk_from_diff(diff))
+        url_to_partition[url] = partition
+        url_to_label[url] = label
+        url_to_pl[url] = pl
+
+    with open('huawei_dataset_url_to_hunk_count.csv', 'w') as file:
+        writer = csv.writer(file)
+        writer.writerow(['url', 'hunk_count', 'label', 'partition', 'pl'])
+        for key in url_to_hunk_count.keys():
+            url = key
+            hunk_count = url_to_hunk_count[key]
+            label = url_to_label[key]
+            partition = url_to_partition[key]
+            pl = url_to_pl[key]
+            writer.writerow([url, hunk_count, label, partition, pl])
+
+
+if __name__ == '__main__':
+    # url_to_files = get_url_to_no_files()
+    # url_to_added_count, url_to_removed_count = read_url_to_token_count()
+    # read_patch_classifier_result_by_file()
+    write_url_to_hunk_count()

@@ -108,7 +108,6 @@ def get_effort(df, lang, threshold, predicted):
     detected_vulnerabilities = 0
     predicted_indices = []
     non_vul_indices = []
-    # print("Total vulnerabilities: {}".format(total_vulnerabilities))
     commit_count = 0
     ifa = len(predicted)
     found_vuln = False
@@ -137,6 +136,7 @@ def get_effort(df, lang, threshold, predicted):
 
     # print("Commit count: {}".format(commit_count))
     # print("Vulnerability found: {}".format(detected_vulnerabilities))
+    # print("Total vulnerabilities: {}".format(total_vulnerabilities))
     # print("Precision: {}".format(precision))
     # print("Recall: {}".format(recall))
     # print("F1: {}".format(f1))
@@ -199,31 +199,31 @@ def calculate_effort(predicted_path, lang):
         url_to_pred[item[0]] = item[1]
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
 
-    effort_5, _, _ = get_effort(df, lang, 0.01, predicted)
+    # effort_5, _, _ = get_effort(df, lang, 0.01, predicted)
 
     effort_1, predicted_indices, non_vul_indices = get_effort(df, lang, 0.05, predicted)
-    with open(predicted_path + '_predicted_indices_cost_effort_5.txt', 'w') as file:
-        writer = csv.writer(file)
-        for url in predicted_indices:
-            writer.writerow([url])
+    # with open(predicted_path + '_predicted_indices_cost_effort_5.txt', 'w') as file:
+    #     writer = csv.writer(file)
+    #     for url in predicted_indices:
+    #         writer.writerow([url])
 
     effort_2, predicted_indices, _ = get_effort(df, lang, 0.1, predicted)
-    with open(predicted_path + '_predicted_indices_cost_effort_10.txt', 'w') as file:
-        writer = csv.writer(file)
-        for url in predicted_indices:
-            writer.writerow([url])
+    # with open(predicted_path + '_predicted_indices_cost_effort_10.txt', 'w') as file:
+    #     writer = csv.writer(file)
+    #     for url in predicted_indices:
+    #         writer.writerow([url])
     
     effort_3, predicted_indices, _ = get_effort(df, lang, 0.15, predicted)
-    with open(predicted_path + '_predicted_indices_cost_effort_15.txt', 'w') as file:
-        writer = csv.writer(file)
-        for url in predicted_indices:
-            writer.writerow([url])
+    # with open(predicted_path + '_predicted_indices_cost_effort_15.txt', 'w') as file:
+    #     writer = csv.writer(file)
+    #     for url in predicted_indices:
+    #         writer.writerow([url])
 
     effort_4, predicted_indices, _ = get_effort(df, lang, 0.20, predicted)
-    with open(predicted_path + '_predicted_indices_cost_effort_20.txt', 'w') as file:
-        writer = csv.writer(file)
-        for url in predicted_indices:
-            writer.writerow([url])
+    # with open(predicted_path + '_predicted_indices_cost_effort_20.txt', 'w') as file:
+    #     writer = csv.writer(file)
+    #     for url in predicted_indices:
+    #         writer.writerow([url])
 
     # print("Effort 1%: {}".format(effort_5))
     print("Effort 5%: {}".format(effort_1))
@@ -543,6 +543,14 @@ def calculate_auc(prob_path, url_to_label):
 
     auc = metrics.roc_auc_score(y_true=y_test, y_score=y_pred)
 
+    fpr, tpr, _ = metrics.roc_curve(y_test,  y_pred)
+    auc = metrics.roc_auc_score(y_test, y_pred)
+    plt.plot(fpr,tpr,label="ROC curve, auc="+str(round(auc,2)))
+    plt.xlabel('True Positive Rate')
+    plt.ylabel('False Positive Rate')
+    plt.title('ROC-AUC for Python')
+    plt.legend(loc=4)
+    plt.savefig('auc_curve_python.png')
     return auc
 
 def test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob_java_path, model_new_prob_python_path):
@@ -725,4 +733,24 @@ cnn_model_prob_path_python_new = 'probs/prob_ensemble_classifier_file_level_cnn_
 
 # test_new_metric(cnn_model_prob_path_java, cnn_model_prob_path_python, cnn_model_prob_path_java_new, cnn_model_prob_path_python_new)
 
-calculate_normalized_effort(cnn_model_prob_path_python_new, 'python')
+# calculate_normalized_effort(cnn_model_prob_path_python_new, 'python')
+
+url_to_label, url_to_loc_mod = get_data()
+
+# model_new_prob_java_path = 'probs/new_prob_java.txt'
+# model_new_prob_python_path = 'probs/new_prob_python.txt'
+# model_java_auc = calculate_auc(model_new_prob_python_path, url_to_label)
+# print("Model auc: {}".format(model_java_auc))
+
+# calculate_effort(model_new_prob_python_path, 'python')
+
+vulcurator_r28_java_prob_path = 'probs/r28_new_prob_java.txt'
+vulcurator_r28_python_prob_path = 'probs/r28_new_prob_python.txt'
+
+huawei_r28_prob_path_java = 'probs/r28_huawei_pred_prob_java.csv'
+huawei_r28_prob_path_python = 'probs/r28_huawei_pred_prob_python.csv'
+
+# model_java_auc = calculate_auc(huawei_r28_prob_path_python, url_to_label)
+# print("Model auc: {}".format(model_java_auc))
+
+calculate_normalized_effort(huawei_r28_prob_path_python, 'python')
