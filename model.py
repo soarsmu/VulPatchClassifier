@@ -563,6 +563,88 @@ class VariantEightClassifier(nn.Module):
             return out
 
 
+class VariantEightLstmClassifier(nn.Module):
+    def __init__(self):
+        super(VariantEightLstmClassifier, self).__init__()
+        self.input_size = 768
+        self.hidden_size = 128
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.lstm = nn.LSTM(input_size=self.input_size,
+                            hidden_size=self.hidden_size,
+                            batch_first=True,
+                            bidirectional=False)
+        self.linear = nn.Linear(2 * self.hidden_size, self.hidden_size)
+
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+
+        self.out_proj = nn.Linear(self.hidden_size, 2)
+
+    def forward(self, before_batch, after_batch, need_final_feature=False):
+        # self.lstm.flatten_parameters()
+        before_out, (before_final_hidden_state, _) = self.lstm(before_batch)
+        before_vector = before_out[:, 0]
+
+        after_out, (after_final_hidden_state, _) = self.lstm(after_batch)
+        after_vector = after_out[:, 0]
+
+        x = self.linear(torch.cat([before_vector, after_vector], axis=1))
+
+        x = self.relu(x)
+        final_feature = x
+
+        x = self.drop_out(x)
+
+        out = self.out_proj(x)
+
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
+
+
+class VariantEightGruClassifier(nn.Module):
+    def __init__(self):
+        super(VariantEightGruClassifier, self).__init__()
+        self.input_size = 768
+        self.hidden_size = 128
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.gru = nn.GRU(input_size=self.input_size,
+                            hidden_size=self.hidden_size,
+                            batch_first=True,
+                            bidirectional=False)
+        self.linear = nn.Linear(2 * self.hidden_size, self.hidden_size)
+
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+
+        self.out_proj = nn.Linear(self.hidden_size, 2)
+
+    def forward(self, before_batch, after_batch, need_final_feature=False):
+        # self.lstm.flatten_parameters()
+        before_out, before_final_hidden_state = self.gru(before_batch)
+        before_vector = before_out[:, 0]
+
+        after_out, after_final_hidden_state = self.gru(after_batch)
+        after_vector = after_out[:, 0]
+
+        x = self.linear(torch.cat([before_vector, after_vector], axis=1))
+
+        x = self.relu(x)
+        final_feature = x
+
+        x = self.drop_out(x)
+
+        out = self.out_proj(x)
+
+        if need_final_feature:
+            return out, final_feature
+        else:
+            return out
+
+
 class VariantSixFineTuneClassifier(nn.Module):
     def __init__(self):
         super(VariantSixFineTuneClassifier, self).__init__()
@@ -778,7 +860,7 @@ class EnsembleModel(nn.Module):
         self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
         self.out_proj = nn.Linear(self.FEATURE_DIM, self.NUMBER_OF_LABELS)
 
-    def forward(self, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8):
+    def forward(self, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, need_features=False):
         feature_3 = self.l1(feature_3)
         feature_7 = self.l2(feature_7)
         feature_5 = self.l3(feature_5)
@@ -801,11 +883,117 @@ class EnsembleModel(nn.Module):
         feature_list = torch.cat(all_features, axis=1)
         x = self.drop_out(feature_list)
         x = self.l5(x)
+
+        # just for pca analysis only
+        pca_features = x
+
         x = self.relu(x)
         x = self.drop_out(x)
         x = self.out_proj(x)
+        
+        if not need_features:
+            return x
+        else:
+            return x, pca_features
+           
 
-        return x
+class EnsemblePCAModel(nn.Module):
+    def __init__(self, feature_dim):
+        super(EnsemblePCAModel, self).__init__()
+        self.FEATURE_DIM = feature_dim
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+        
+        self.linear = nn.Linear(self.FEATURE_DIM, self.FEATURE_DIM)
+        self.relu = nn.ReLU()
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.FEATURE_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, features, need_features=False):
+        x = self.linear(features)
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+        
+        if not need_features:
+            return x
+        else:
+            return x
+
+
+
+class EnsembleModelHunkLevelFCN(nn.Module):
+    def __init__(self, ablation_study=False, variant_to_drop=None):
+        super(EnsembleModelHunkLevelFCN, self).__init__()
+        self.FEATURE_DIM = 768
+        self.DENSE_DIM = 128
+        self.CNN_FEATURE_DIM = 300
+        self.HIDDEN_DIM_DROPOUT_PROB = 0.3
+        self.NUMBER_OF_LABELS = 2
+        # need 2 linear layer to project CNN feature dim to 768
+        # 1 for variant 3
+        # 1 for variant 7
+        # self.l1 = nn.Linear(self.CNN_FEATURE_DIM, self.FEATURE_DIM)
+        # self.l2 = nn.Linear(self.CNN_FEATURE_DIM * 2, self.FEATURE_DIM)
+
+        # need 1 linear layer to project variant 5 feature to 768
+
+        self.l3 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
+
+        # need 1 linear layer to project variant 8 feature to 768
+        self.l4 = nn.Linear(self.DENSE_DIM, self.FEATURE_DIM)
+
+        # 1 layer to combine
+        self.ablation_study = ablation_study
+
+        if not self.ablation_study:
+            self.l5 = nn.Linear(7 * self.FEATURE_DIM, self.FEATURE_DIM)
+        else:
+            self.l5 = nn.Linear((7 - len(variant_to_drop)) * self.FEATURE_DIM, self.FEATURE_DIM)
+
+        self.variant_to_drop = variant_to_drop
+
+        self.relu = nn.ReLU()
+
+        self.drop_out = nn.Dropout(self.HIDDEN_DIM_DROPOUT_PROB)
+        self.out_proj = nn.Linear(self.FEATURE_DIM, self.NUMBER_OF_LABELS)
+
+    def forward(self, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, need_features=False):
+        # feature_3 = self.l1(feature_3)
+        # feature_7 = self.l2(feature_7)
+        feature_5 = self.l3(feature_5)
+        feature_8 = self.l4(feature_8)
+        all_features = [feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8]
+        if self.ablation_study:
+            tmp = all_features
+            all_features = []
+            drop = []
+            drop.append(True) if 1 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 2 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 3 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 5 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 6 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 7 in self.variant_to_drop else drop.append(False)
+            drop.append(True) if 8 in self.variant_to_drop else drop.append(False)
+            for i in range(len(drop)):
+                if not drop[i]:
+                    all_features.append(tmp[i])
+        feature_list = torch.cat(all_features, axis=1)
+        x = self.drop_out(feature_list)
+        x = self.l5(x)
+
+        # just for pca analysis only
+        pca_features = x
+
+        x = self.relu(x)
+        x = self.drop_out(x)
+        x = self.out_proj(x)
+        
+        if not need_features:
+            return x
+        else:
+            return x, pca_features
+
 
 class EnsembleModelFileLevelCNN(nn.Module):
     def __init__(self, ablation_study=False, variant_to_drop=None):

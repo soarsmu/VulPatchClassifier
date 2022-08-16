@@ -6,9 +6,9 @@ from torch.utils.data import Dataset, DataLoader
 from torch import cuda
 import pandas as pd
 from entities import VariantOneDataset, VariantTwoDataset, VariantFiveDataset, VariantSixDataset, VariantThreeDataset, \
-    VariantSevenDataset, VariantEightDataset
+    VariantSevenDataset, VariantEightDataset, VariantThreeFcnDataset
 from model import VariantOneClassifier, VariantTwoClassifier, VariantFiveClassifier, VariantSixClassifier, \
-    VariantThreeClassifier, VariantSevenClassifier, VariantEightClassifier
+    VariantThreeClassifier, VariantSevenClassifier, VariantEightClassifier, VariantEightLstmClassifier, VariantEightGruClassifier
 import utils
 import variant_1
 import variant_2
@@ -17,6 +17,10 @@ import variant_5
 import variant_6
 import variant_7
 import variant_8
+import variant_8_lstm
+import variant_8_gru
+import variant_3_fcn
+import variant_7_fcn
 from sklearn import metrics
 from statistics import mean
 from sklearn.linear_model import LogisticRegression
@@ -54,8 +58,13 @@ VARIANT_EIGHT_MODEL_PATH = 'model/patch_variant_8_finetune_1_epoch_best_model.sa
 
 VARIANT_TWO_CNN_MODEL_PATH = 'model/patch_variant_2_cnn_best_model.sav'
 VARIANT_SIX_CNN_MODEL_PATH = 'model/patch_variant_6_cnn_best_model.sav'
+VARIANT_EIGHT_LSTM_MODEL_PATH = 'model/patch_variant_8_lstm_model.sav'
+VARIANT_EIGHT_GRU_MODEL_PATH = 'model/patch_variant_8_gru_model.sav'
 
-TEST_BATCH_SIZE = 512
+VARIANT_THREE_FCN_MODEL_PATH = 'model/patch_variant_3_fcn.sav'
+VARIANT_SEVEN_FCN_MODEL_PATH = 'model/patch_variant_7_fcn.sav'
+
+TEST_BATCH_SIZE = 64
 
 TEST_PARAMS = {'batch_size': TEST_BATCH_SIZE, 'shuffle': True, 'num_workers': 8}
 use_cuda = cuda.is_available()
@@ -141,6 +150,40 @@ def infer_variant_2(partition, result_file_path, need_feature_only=False):
         write_feature_to_file(result_file_path, urls, features)
     else:
         precision, recall, f1, auc, urls, probs = variant_2.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs)
+
+
+def infer_variant_3_fcn(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+
+    model = VariantTwoClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_THREE_FCN_MODEL_PATH))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantThreeFcnDataset(ids, id_to_label, id_to_url, VARIANT_THREE_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS)
+
+    if need_feature_only:
+        auc, urls, features = variant_3_fcn.predict_test_data(model, generator, device, need_prob=True, need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_3_fcn.predict_test_data(model, generator, device, need_prob=True)
 
         print("Precision: {}".format(precision))
         print("Recall: {}".format(recall))
@@ -288,6 +331,40 @@ def infer_variant_6(partition, result_file_path, need_feature_only=False):
         write_prob_to_file(result_file_path, urls, probs)
 
 
+def infer_variant_7_fcn(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+    model = VariantSixClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_SEVEN_FCN_MODEL_PATH))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantSixDataset(ids, id_to_label, id_to_url, VARIANT_SEVEN_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS)
+
+    if need_feature_only:
+        auc, urls, features = variant_7_fcn.predict_test_data(model, generator, device, need_prob=True,
+                                                          need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_7_fcn.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs)
+
+
 def infer_variant_6_cnn(partition, result_file_path, need_feature_only=False):
     print("Testing on partition: {}".format(partition))
     print("Saving result to: {}".format(result_file_path))
@@ -392,6 +469,76 @@ def infer_variant_8(partition, result_file_path, need_feature_only=False):
 
         write_prob_to_file(result_file_path, urls, probs)
 
+
+def infer_variant_8_lstm(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+
+    model = VariantEightLstmClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        # model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_EIGHT_LSTM_MODEL_PATH, map_location={'cuda:0': 'cuda:1'}))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantEightDataset(ids, id_to_label, id_to_url, VARIANT_EIGHT_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_8_lstm.custom_collate)
+
+    if need_feature_only:
+        auc, urls, features = variant_8_lstm.predict_test_data(model, generator, device, need_prob=True,
+                                                          need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_8_lstm.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs)
+
+
+def infer_variant_8_gru(partition, result_file_path, need_feature_only=False):
+    print("Testing on partition: {}".format(partition))
+    print("Saving result to: {}".format(result_file_path))
+
+    model = VariantEightGruClassifier()
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+        # model = nn.DataParallel(model)
+
+    model.to(device)
+
+    model.load_state_dict(torch.load(VARIANT_EIGHT_GRU_MODEL_PATH, map_location={'cuda:0': 'cuda:1'}))
+
+    ids, id_to_label, id_to_url = get_dataset_info(partition)
+    dataset = VariantEightDataset(ids, id_to_label, id_to_url, VARIANT_EIGHT_EMBEDDINGS_DIRECTORY)
+    generator = DataLoader(dataset, **TEST_PARAMS, collate_fn=variant_8_gru.custom_collate)
+
+    if need_feature_only:
+        auc, urls, features = variant_8_gru.predict_test_data(model, generator, device, need_prob=True,
+                                                          need_feature_only=need_feature_only)
+        print("AUC: {}".format(auc))
+        write_feature_to_file(result_file_path, urls, features)
+    else:
+        precision, recall, f1, auc, urls, probs = variant_8_gru.predict_test_data(model, generator, device, need_prob=True)
+
+        print("Precision: {}".format(precision))
+        print("Recall: {}".format(recall))
+        print("F1: {}".format(f1))
+        print("AUC: {}".format(auc))
+        print("-" * 32)
+
+        write_prob_to_file(result_file_path, urls, probs) 
+        
 
 def get_dataset_info(partition):
     url_data, label_data = utils.get_data(dataset_name)
@@ -565,53 +712,76 @@ def get_combined_ensemble_model():
         for i, url in enumerate(python_test_url_list):
             writer.writerow([url, y_probs[i]])
 
-# print("Inferring variant 1...")
-# infer_variant_1('train', 'features/feature_variant_1_train.txt', need_feature_only=True)
-# infer_variant_1('test_java', 'features/feature_variant_1_test_java.txt', need_feature_only=True)
-# infer_variant_1('test_python', 'features/feature_variant_1_test_python.txt', need_feature_only=True)
-# print('-' * 64)
-#
-# print("Inferring variant 2...")
-# infer_variant_2('train', 'features/feature_variant_2_train.txt', need_feature_only=True)
-# infer_variant_2('test_java', 'features/feature_variant_2_test_java.txt', need_feature_only=True)
-# infer_variant_2('test_python', 'features/feature_variant_2_test_python.txt', need_feature_only=True)
-# print('-' * 64)
-#
 
-#
-# print("Inferring variant 5...")
-# infer_variant_5('train', 'features/feature_variant_5_train.txt', need_feature_only=True)
-# infer_variant_5('test_java', 'features/prob_variant_5_test_java.txt', need_feature_only=True)
-# infer_variant_5('test_python', 'features/prob_variant_5_test_python.txt', need_feature_only=True)
-# print('-' * 64)
-#
-# print("Inferring variant 6...")
-# infer_variant_6('train', 'features/feature_variant_6_train.txt', need_feature_only=True)
-# infer_variant_6('test_java', 'features/feature_variant_6_test_java.txt', need_feature_only=True)
-# infer_variant_6('test_python', 'features/feature_variant_6_test_python.txt', need_feature_only=True)
-#
-# print("Inferring variant 7...")
-# infer_variant_7('val', 'features/feature_variant_7_val.txt', need_feature_only=True)
-# infer_variant_7('test_java', 'features/feature_variant_7_test_java.txt', need_feature_only=True)
-# infer_variant_7('test_python', 'features/feature_variant_7_test_python.txt', need_feature_only=True)
+if __name__ == '__main__':
+    # print("Inferring variant 1...")
+    # infer_variant_1('train', 'features/feature_variant_1_train.txt', need_feature_only=True)
+    # infer_variant_1('test_java', 'features/feature_variant_1_test_java.txt', need_feature_only=True)
+    # infer_variant_1('test_python', 'features/feature_variant_1_test_python.txt', need_feature_only=True)
+    # print('-' * 64)
+    #
+    # print("Inferring variant 2...")
+    # infer_variant_2('train', 'features/feature_variant_2_train.txt', need_feature_only=True)
+    # infer_variant_2('test_java', 'features/feature_variant_2_test_java.txt', need_feature_only=True)
+    # infer_variant_2('test_python', 'features/feature_variant_2_test_python.txt', need_feature_only=True)
+    # print('-' * 64)
+    #
 
-# print("Inferring variant 8...")
-# infer_variant_8('train', 'features/feature_variant_8_train.txt', need_feature_only=True)
-# infer_variant_8('test_java', 'features/feature_variant_8_test_java.txt', need_feature_only=True)
-# infer_variant_8('test_python', 'features/feature_variant_8_test_python.txt', need_feature_only=True)
+    #
+    # print("Inferring variant 5...")
+    # infer_variant_5('train', 'features/feature_variant_5_train.txt', need_feature_only=True)
+    # infer_variant_5('test_java', 'features/prob_variant_5_test_java.txt', need_feature_only=True)
+    # infer_variant_5('test_python', 'features/prob_variant_5_test_python.txt', need_feature_only=True)
+    # print('-' * 64)
+    #
+    # print("Inferring variant 6...")
+    # infer_variant_6('train', 'features/feature_variant_6_train.txt', need_feature_only=True)
+    # infer_variant_6('test_java', 'features/feature_variant_6_test_java.txt', need_feature_only=True)
+    # infer_variant_6('test_python', 'features/feature_variant_6_test_python.txt', need_feature_only=True)
+    #
+    # print("Inferring variant 7...")
+    # infer_variant_7('val', 'features/feature_variant_7_val.txt', need_feature_only=True)
+    # infer_variant_7('test_java', 'features/feature_variant_7_test_java.txt', need_feature_only=True)
+    # infer_variant_7('test_python', 'features/feature_variant_7_test_python.txt', need_feature_only=True)
 
-# print("Inferring variant 3...")
-# infer_variant_3('train', 'features/feature_variant_3_train.txt', need_feature_only=True)
-# infer_variant_3('test_java', 'probs/prob_variant_3_finetune_1_epoch_test_java.txt', need_feature_only=False)
-# infer_variant_3('test_python', 'probs/prob_variant_3_finetune_1_epoch_test_python.txt', need_feature_only=False)
+    # print("Inferring variant 8...")
+    # infer_variant_8('train', 'features/feature_variant_8_train.txt', need_feature_only=True)
+    # infer_variant_8('test_java', 'features/feature_variant_8_test_java.txt', need_feature_only=True)
+    # infer_variant_8('test_python', 'features/feature_variant_8_test_python.txt', need_feature_only=True)
 
-print("Inferring variant 2 CNN...")
-infer_variant_2_cnn('train', 'features/feature_variant_2_cnn_train.txt', need_feature_only=True)
-infer_variant_2_cnn('test_java', 'features/feature_variant_2_cnn_test_java.txt', need_feature_only=True)
-infer_variant_2_cnn('test_python', 'features/feature_variant_2_cnn_test_python.txt', need_feature_only=True)
+    # print("Inferring variant 3...")
+    # infer_variant_3('train', 'features/feature_variant_3_train.txt', need_feature_only=True)
+    # infer_variant_3('test_java', 'probs/prob_variant_3_finetune_1_epoch_test_java.txt', need_feature_only=False)
+    # infer_variant_3('test_python', 'probs/prob_variant_3_finetune_1_epoch_test_python.txt', need_feature_only=False)
+
+    # print("Inferring variant 2 CNN...")
+    # infer_variant_2_cnn('train', 'features/feature_variant_2_cnn_train.txt', need_feature_only=True)
+    # infer_variant_2_cnn('test_java', 'features/feature_variant_2_cnn_test_java.txt', need_feature_only=True)
+    # infer_variant_2_cnn('test_python', 'features/feature_variant_2_cnn_test_python.txt', need_feature_only=True)
 
 
-print("Inferring variant 6 CNN...")
-infer_variant_6_cnn('train', 'features/feature_variant_6_cnn_train.txt', need_feature_only=True)
-infer_variant_6_cnn('test_java', 'features/feature_variant_6_cnn_test_java.txt', need_feature_only=True)
-infer_variant_6_cnn('test_python', 'features/feature_variant_6_cnn_test_python.txt', need_feature_only=True)
+    # print("Inferring variant 6 CNN...")
+    # infer_variant_6_cnn('train', 'features/feature_variant_6_cnn_train.txt', need_feature_only=True)
+    # infer_variant_6_cnn('test_java', 'features/feature_variant_6_cnn_test_java.txt', need_feature_only=True)
+    # infer_variant_6_cnn('test_python', 'features/feature_variant_6_cnn_test_python.txt', need_feature_only=True)
+
+    # print("Inferring variant 8 LSTM...")
+    # infer_variant_8_lstm('train', 'features/feature_variant_8_lstm_train.txt', need_feature_only=True)
+    # infer_variant_8_lstm('test_java', 'features/feature_variant_8_lstm_test_java.txt', need_feature_only=True)
+    # infer_variant_8_lstm('test_python', 'features/feature_variant_8_lstm_test_python.txt', need_feature_only=True)
+
+    # print("Inferring variant 8 GRU...")
+    # infer_variant_8_gru('train', 'features/feature_variant_8_gru_train.txt', need_feature_only=True)
+    # infer_variant_8_gru('test_java', 'features/feature_variant_8_gru_test_java.txt', need_feature_only=True)
+    # infer_variant_8_gru('test_python', 'features/feature_variant_8_gru_test_python.txt', need_feature_only=True)
+
+
+    print("Inferring variant 3 FCN...")
+    infer_variant_3_fcn('train', 'features/feature_variant_3_fcn_train.txt', need_feature_only=True)
+    infer_variant_3_fcn('test_java', 'features/feature_variant_3_fcn_test_java.txt', need_feature_only=True)
+    infer_variant_3_fcn('test_python', 'features/feature_variant_3_fcn_test_python.txt', need_feature_only=True)
+
+    print("Inferring variant 7 FCN...")
+    infer_variant_7_fcn('train', 'features/feature_variant_7_fcn_train.txt', need_feature_only=True)
+    infer_variant_7_fcn('test_java', 'features/feature_variant_7_fcn_test_java.txt', need_feature_only=True)
+    infer_variant_7_fcn('test_python', 'features/feature_variant_7_fcn_test_python.txt', need_feature_only=True)

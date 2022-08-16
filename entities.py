@@ -206,6 +206,39 @@ class VariantTwoDataset(Dataset):
         return int(id), url, file_embeddings, y
 
 
+class VariantThreeFcnDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url, embedding_directory):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.embedding_directory = embedding_directory
+        self.max_data_length = 5
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+        file_path = os.path.join(directory, self.embedding_directory + '/' + url.replace('/', '_') + '.txt')
+
+        with open(file_path, 'r') as reader:
+            data = json.loads(reader.read())
+
+        file_embeddings = data['embeddings']
+
+        if len(file_embeddings) > self.max_data_length:
+            file_embeddings = file_embeddings[:self.max_data_length]
+        while len(file_embeddings) < self.max_data_length:
+            file_embeddings.append(empty_embedding)
+
+        file_embeddings = torch.FloatTensor(file_embeddings)
+
+        y = self.labels[id]
+
+        return int(id), url, file_embeddings, y
+
+
 class VariantFiveDataset(Dataset):
     def __init__(self, list_IDs, labels, id_to_url, embedding_directory):
         self.list_IDs = list_IDs
@@ -257,7 +290,7 @@ class VariantThreeDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, hunk_embeddings, y
-
+        
 
 class VariantSevenDataset(Dataset):
     def __init__(self, list_IDs, labels, id_to_url, embedding_directory):
@@ -534,3 +567,24 @@ class EnsembleDataset(Dataset):
         y = self.labels[id]
 
         return int(id), url, feature_1, feature_2, feature_3, feature_5, feature_6, feature_7, feature_8, y
+
+
+class EnsemblePcaDataset(Dataset):
+    def __init__(self, list_IDs, labels, id_to_url, id_to_features):
+        self.list_IDs = list_IDs
+        self.labels = labels
+        self.id_to_url = id_to_url
+        self.id_to_features = id_to_features
+
+    def __len__(self):
+        return len(self.list_IDs)
+
+    def __getitem__(self, index):
+        id = self.list_IDs[index]
+        url = self.id_to_url[id]
+
+        features = torch.FloatTensor(self.id_to_features[id])
+
+        y = self.labels[id]
+
+        return int(id), url, features, y

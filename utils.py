@@ -2,6 +2,8 @@ import pandas as pd
 from tqdm import tqdm
 import os.path
 import json
+import re
+import math
 
 
 def get_data_from_saved_file(file_info_name, need_pl=False):
@@ -76,3 +78,78 @@ def get_data(dataset_name, need_pl=False):
         return url_data, label_data, url_to_pl, url_to_label
     else:
         return url_data, label_data
+
+
+
+def extract_security_dataset(dataset_name, output_path):
+    java_sec_url_set, python_sec_url_set = filter_security_changes_by_keywords(dataset_name)
+    print(len(java_sec_url_set))
+    print(len(python_sec_url_set))
+    print("Reading dataset....")
+    df = pd.read_csv(dataset_name)
+
+    df = df[['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD', 'filename', 'msg']]
+    df = df[df.partition == 'test']
+    items = df.to_numpy().tolist()
+    sec_items = []
+
+    for item in items:
+        label = item[4]
+        url = item[1] + '/commit/' + item[0]
+
+        if label == 1 or url in java_sec_url_set or url in python_sec_url_set:
+            sec_items.append(item)
+
+    
+    sec_df = pd.DataFrame(sec_items, columns= ['commit_id', 'repo', 'partition', 'diff', 'label', 'PL', 'LOC_MOD', 'filename', 'msg']) 
+
+    sec_df.to_csv(output_path, encoding='utf-8')
+
+
+def filter_security_changes_by_keywords(dataset_name):
+    print("Reading dataset....")
+    df = pd.read_csv(dataset_name)
+    df = df[['commit_id', 'repo', 'partition', 'PL', 'label', 'msg']]
+
+    df = df[df.label == 0]
+    df = df[df.partition == 'test']
+
+    items = df.to_numpy().tolist()  
+
+    python_sec_url_set = set()
+    java_sec_url_set = set()
+
+    sec_message_set = set()
+    strong_regex = re.compile(r'(?i)(denial.of.service|remote.code.execution|\bopen.redirect|OSVDB|\bXSS\b|\bReDoS\b|\bNVD\b|malicious|x−frame−options|attack|cross.site|exploit|directory.traversal|\bRCE\b|\bdos\b|\bXSRF\b|clickjack|session.fixation|hijack|advisory|insecure|security|\bcross−origin\b|unauthori[z|s]ed|infinite.loop)')
+    medium_regex =re.compile(r'(?i)(authenticat(e|ion)|bruteforce|bypass|constant.time|crack|credential|\bDoS\b|expos(e|ing)|hack|harden|injection|lockout|overflow|password|\bPoC\b|proof.of.concept|poison|privelage|\b(in)?secur(e|ity)|(de)?serializ|spoof|timing|traversal)')
+
+    for item in tqdm(items):
+        message = item[5]
+        url = item[1] + '/commit/' + item[0]
+        pl = item[3]
+
+        if not isinstance(message, str) and math.isnan(message):
+            continue
+        
+        m = strong_regex.search(message)
+        n = medium_regex.search(message)
+        if m or n:
+            if pl == 'java':
+                java_sec_url_set.add(url)
+            else:
+                python_sec_url_set.add(url)
+
+
+            sec_message_set.add(message)
+
+    return java_sec_url_set, python_sec_url_set
+
+
+
+if __name__== '__main__':
+
+    dataset_name = 'ase_dataset_sept_19_2021.csv'
+    sec_dataset_name = 'ase_surity_sub_dataset.csv'
+
+    extract_security_dataset(dataset_name, sec_dataset_name)
+ 
