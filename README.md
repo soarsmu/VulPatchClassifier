@@ -27,10 +27,11 @@ To replicate the training process of MiDas, please follow the below steps:
         7. Evaluate MiDas 
 
 ## Prerequisites
-Make sure you create a directory to store embedding vectors, and folder "model" to store following this hierarchy:
+Make sure you create a directory to store embedding vectors, a folder "model" to store saved model, and a "features" folder to store extractor features following this hierarchy:
 ```
     VulPatchClassifier
         model
+        features
         ...
     embeddings
         variant_1
