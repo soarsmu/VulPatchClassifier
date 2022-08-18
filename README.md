@@ -14,3 +14,13 @@ MiDas consists of seven base models, regarding the combination of granularity an
 | 6                | File        | Unimodal                |
 | 7                | Hunk        | Unimodal                |
 | 8                | Line        | Unimodal                |
+
+
+To replicate the training process of MiDas, please follow the below steps:
+        1. Finetune CodeBERT for each base model
+        2. Save commit embedding vectors represented by CodeBERT
+        3. Train base models
+        4. Infer base models to extract commit's features
+        5. Train ensemble model
+        6. Apply adjustment function 
+        7. Evaluate MiDas 
