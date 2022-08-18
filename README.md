@@ -33,7 +33,7 @@ Make sure you create a directory to store embedding vectors, a folder "model" to
         model
         features
         ...
-    embeddings
+    finetuned_embeddings
         variant_1
         variant_2
         variant_3
