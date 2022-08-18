@@ -46,3 +46,19 @@ Make sure you create a directory to store embedding vectors, a folder "model" to
 ## Dataset
 The dataset is available at: https://zenodo.org/record/5565182#.Yv3lHuxBxO8
 Please download and put dataset inside the VulPatchClassifier folder
+
+
+## Replication
+
+##### Finetune CodeBERT
+Corresponding to seven base model, we have seven python scripts to finetune them.
+
+| Base model index | Finetuning script                     |
+|------------------|---------------------------------------|
+| 1                | python variant_1_finetune.py          |
+| 2                | python variant_2_finetune.py          |
+| 3                | python variant_3_finetune_separate.py |
+| 5                | python variant_5_finetune.py          |
+| 6                | python variant_6_finetune.py          |
+| 7                | python variant_7_finetune_separate.py |
+| 8                | python variant_8_finetune_separate.py |
