@@ -25,3 +25,19 @@ To replicate the training process of MiDas, please follow the below steps:
         5. Train ensemble model
         6. Apply adjustment function 
         7. Evaluate MiDas 
+
+## Prerequisites
+Make sure you create a directory to store embedding vectors, and folder "model" to store following this hierarchy:
+```
+    VulPatchClassifier
+        model
+        ...
+    embeddings
+        variant_1
+        variant_2
+        variant_3
+        variant_5
+        variant_6
+        variant_7
+        variant_8
+```
