@@ -50,6 +50,8 @@ Please download and put dataset inside the VulPatchClassifier folder
 
 ## Replication
 
+Note: The current code base requires two GPUs to run. We will try to make it more flexible. 
+
 ##### Finetune CodeBERT
 Corresponding to seven base model, we have seven python scripts to finetune them.
 
@@ -62,3 +64,16 @@ Corresponding to seven base model, we have seven python scripts to finetune them
 | 6                | python variant_6_finetune.py          |
 | 7                | python variant_7_finetune_separate.py |
 | 8                | python variant_8_finetune_separate.py |
+
+##### Saving embedding vectors
+After finetuning, run the following scripts to save embedding vectors corresponding to each base model:
+
+| Base model index | Saving embeddings script                 |
+|------------------|------------------------------------------|
+| 1                | python preprocess_finetuned_variant_1.py |
+| 2                | python preprocess_finetuned_variant_2.py |                    
+| 3                | python preprocess_finetuned_variant_3.py |        
+| 5                | python preprocess_finetuned_variant_5.py |           
+| 6                | python preprocess_finetuned_variant_6.py |           
+| 7                | python preprocess_finetuned_variant_7.py |  
+| 8                | python preprocess_finetuned_variant_8.py |  
