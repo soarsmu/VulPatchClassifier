@@ -45,3 +45,4 @@ Make sure you create a directory to store embedding vectors, a folder "model" to
 
 ## Dataset
 The dataset is available at: https://zenodo.org/record/5565182#.Yv3lHuxBxO8
+Please download and put dataset inside the VulPatchClassifier folder
