@@ -17,6 +17,7 @@ MiDas consists of seven base models, regarding the combination of granularity an
 
 
 To replicate the training process of MiDas, please follow the below steps:
+
         1. Finetune CodeBERT for each base model
         2. Save commit embedding vectors represented by CodeBERT
         3. Train base models
