@@ -55,7 +55,7 @@ Note: The current code base requires two GPUs to run. We will try to make it mor
 #### Finetune CodeBERT
 Corresponding to seven feature extractors, we have seven python scripts to finetune them.
 
-| Base model index | Finetuning script                     |
+| Feature extractor index | Finetuning script                     |
 |------------------|---------------------------------------|
 | 1                | python variant_1_finetune.py          |
 | 2                | python variant_2_finetune.py          |
@@ -68,7 +68,7 @@ Corresponding to seven feature extractors, we have seven python scripts to finet
 #### Saving embedding vectors
 After finetuning, run the following scripts to save embedding vectors corresponding to each feature extractor:
 
-| Base model index | Saving embeddings script                 |
+| Feature extractor index | Saving embeddings script                 |
 |------------------|------------------------------------------|
 | 1                | python preprocess_finetuned_variant_1.py |
 | 2                | python preprocess_finetuned_variant_2.py |                    
@@ -77,3 +77,16 @@ After finetuning, run the following scripts to save embedding vectors correspond
 | 6                | python preprocess_finetuned_variant_6.py |           
 | 7                | python preprocess_finetuned_variant_7.py |  
 | 8                | python preprocess_finetuned_variant_8.py |  
+
+#### Saving embedding vectors 
+Next, we need to train seven feature extractors
+
+| Feature extractor index | Extractor training script                 |
+|------------------|------------------------------------------|
+| 1                | python variant_1.py |
+| 2                | python variant_2.py |                    
+| 3                | python variant_3.py |        
+| 5                | python variant_5.py |           
+| 6                | python variant_6.py |           
+| 7                | python variant_7.py |  
+| 8                | python variant_8.py |  
