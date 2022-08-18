@@ -2,10 +2,10 @@
 
 MiDas is a transformer-based novel techinique for detecting vulnerability-fixing commits. MiDas extract information of commit in respect to multiple levels of granularity (i.e. commit level, file level, hunk level, line level)
 
-MiDas consists of seven base models, regarding the combination of granularity and CodeBERT representation:
+MiDas consists of seven feature extractors, regard the combination of granularity and CodeBERT representation:
 
 
-| Base model index | Granularity | CodeBERT representation |
+| Feature extractor index | Granularity | CodeBERT representation |
 |------------------|-------------|-------------------------|
 | 1                | Commit      | Bimodal                 |
 | 2                | File        | Bimodal                 |
@@ -18,11 +18,11 @@ MiDas consists of seven base models, regarding the combination of granularity an
 
 To replicate the training process of MiDas, please follow the below steps:
 
-        1. Finetune CodeBERT for each base model
+        1. Finetune CodeBERT for each feature extractor
         2. Save commit embedding vectors represented by CodeBERT
-        3. Train base models
-        4. Infer base models to extract commit's features
-        5. Train ensemble model
+        3. Train feature extractors
+        4. Infer feature extractors to extract commit's features
+        5. Train neural classifier
         6. Apply adjustment function 
         7. Evaluate MiDas 
 
@@ -53,7 +53,7 @@ Please download and put dataset inside the VulPatchClassifier folder
 Note: The current code base requires two GPUs to run. We will try to make it more flexible. 
 
 #### Finetune CodeBERT
-Corresponding to seven base model, we have seven python scripts to finetune them.
+Corresponding to seven feature extractors, we have seven python scripts to finetune them.
 
 | Base model index | Finetuning script                     |
 |------------------|---------------------------------------|
@@ -66,7 +66,7 @@ Corresponding to seven base model, we have seven python scripts to finetune them
 | 8                | python variant_8_finetune_separate.py |
 
 #### Saving embedding vectors
-After finetuning, run the following scripts to save embedding vectors corresponding to each base model:
+After finetuning, run the following scripts to save embedding vectors corresponding to each feature extractor:
 
 | Base model index | Saving embeddings script                 |
 |------------------|------------------------------------------|
