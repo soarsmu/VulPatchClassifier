@@ -1110,18 +1110,18 @@ def evaluate_different_design():
 
 def evaluate_pca():
 
-    model_pca_prob_path_java = 'probs/prob_ensemble_classifier_pca_3000_test_java.txt'
-    model_pca_prob_path_python = 'probs/prob_ensemble_classifier_pca_3000_test_python.txt'
-    model_pca_prob_path_java_new = 'probs/prob_ensemble_classifier_pca_3000_test_java_new.txt'
-    model_pca_prob_path_python_new = 'probs/prob_ensemble_classifier_pca_3000_test_python_new.txt'
+    model_pca_prob_path_java = 'probs/prob_ensemble_classifier_pca_070_test_java.txt'
+    model_pca_prob_path_python = 'probs/prob_ensemble_classifier_pca_070_test_python.txt'
+    model_pca_prob_path_java_new = 'probs/prob_ensemble_classifier_pca_070_test_java_new.txt'
+    model_pca_prob_path_python_new = 'probs/prob_ensemble_classifier_pca_070_test_python_new.txt'
 
-    # test_new_metric(model_pca_prob_path_java, model_pca_prob_path_python, model_pca_prob_path_java_new, model_pca_prob_path_python_new)
+    test_new_metric(model_pca_prob_path_java, model_pca_prob_path_python, model_pca_prob_path_java_new, model_pca_prob_path_python_new)
     
     url_to_label, url_to_loc_mod = get_data()
 
-    calculate_auc(model_pca_prob_path_python_new, url_to_label)
-    calculate_effort(model_pca_prob_path_python_new, 'python')
-    calculate_normalized_effort(model_pca_prob_path_python_new, 'python')
+    calculate_auc(model_pca_prob_path_java_new, url_to_label)
+    calculate_effort(model_pca_prob_path_java_new, 'java')
+    calculate_normalized_effort(model_pca_prob_path_java_new, 'java')
 
 
 if __name__ == '__main__':

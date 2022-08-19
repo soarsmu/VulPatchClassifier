@@ -295,7 +295,7 @@ def do_train(args, num_features):
 
     feature_data['train'] = pca.fit_transform(feature_data['train'])
 
-    print("Transform testjava")
+    print("Transform test java")
 
     for url in url_data['test_java']:
         feature_data['test_java'].append(url_to_features[url])
@@ -303,11 +303,18 @@ def do_train(args, num_features):
     print("Transform test python")
     for url in url_data['test_python']:
         feature_data['test_python'].append(url_to_features[url])
-
-
    
     feature_data['test_java'] = pca.transform(feature_data['test_java'])
     feature_data['test_python'] = pca.transform(feature_data['test_python'])
+
+
+
+    # giang, model's dim depends on n_components or % explained variance
+
+    FEATURE_DIM = num_features
+
+    if num_features < 1:
+        FEATURE_DIM = len(feature_data['train'][0])
 
     train_ids, test_java_ids, test_python_ids = [], [], []
     index = 0
@@ -344,7 +351,7 @@ def do_train(args, num_features):
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = EnsemblePCAModel(num_features)
+    model = EnsemblePCAModel(FEATURE_DIM)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -359,6 +366,9 @@ def do_train(args, num_features):
           training_generator=training_generator,
           test_java_generator=test_java_generator,
           test_python_generator=test_python_generator)
+
+    print("Feature dim: {}".format(FEATURE_DIM))
+
 
 
 def infer_dataset(partition, feature_path):
@@ -471,6 +481,6 @@ if __name__ == '__main__':
                         type=str,
                         help='path to save prediction for Python projects')
     args = parser.parse_args()
-    do_train(args, 3000)
+    do_train(args, 0.70)
 
     # infer_dataset('test_python', 'features/feature_ensemble_test_python.txt')

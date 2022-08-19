@@ -7,7 +7,7 @@ import json
 import utils
 from torch.utils.data import DataLoader
 from entities import EnsembleDataset, EnsemblePcaDataset
-from model import EnsembleModelHunkLevelFCN
+from model import EnsembleModel
 import torch
 from torch import cuda
 from torch import nn as nn
@@ -239,10 +239,10 @@ def do_train(args):
     train_feature_path = [
         'features/feature_variant_1_train.txt',
         'features/feature_variant_2_train.txt',
-        'features/feature_variant_3_fcn_train.txt',
+        'features/feature_variant_3_train.txt',
         'features/feature_variant_5_train.txt',
         'features/feature_variant_6_train.txt',
-        'features/feature_variant_7_fcn_train.txt',
+        'features/feature_variant_7_train.txt',
         'features/feature_variant_8_train.txt'
     ]
 
@@ -259,20 +259,20 @@ def do_train(args):
     test_java_feature_path = [
         'features/feature_variant_1_test_java.txt',
         'features/feature_variant_2_test_java.txt',
-        'features/feature_variant_3_fcn_test_java.txt',
+        'features/feature_variant_3_test_java.txt',
         'features/feature_variant_5_test_java.txt',
         'features/feature_variant_6_test_java.txt',
-        'features/feature_variant_7_fcn_test_java.txt',
+        'features/feature_variant_7_test_java.txt',
         'features/feature_variant_8_test_java.txt'
     ]
 
     test_python_feature_path = [
         'features/feature_variant_1_test_python.txt',
         'features/feature_variant_2_test_python.txt',
-        'features/feature_variant_3_fcn_test_python.txt',
+        'features/feature_variant_3_test_python.txt',
         'features/feature_variant_5_test_python.txt',
         'features/feature_variant_6_test_python.txt',
-        'features/feature_variant_7_fcn_test_python.txt',
+        'features/feature_variant_7_test_python.txt',
         'features/feature_variant_8_test_python.txt'
     ]
 
@@ -337,7 +337,7 @@ def do_train(args):
     test_java_generator = DataLoader(test_java_set, **TEST_PARAMS)
     test_python_generator = DataLoader(test_python_set, **TEST_PARAMS)
 
-    model = EnsembleModelHunkLevelFCN(args.ablation_study, variant_to_drop)
+    model = EnsembleModel(args.ablation_study, variant_to_drop)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
