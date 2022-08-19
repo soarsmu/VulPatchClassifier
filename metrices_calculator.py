@@ -156,7 +156,7 @@ def get_effort_hunk_or_file(df, lang, threshold, predicted, url_to_hunk_count):
 
 
 def get_effort(df, lang, threshold, predicted, url_to_hunk_count=None):
-    print("Calculating effort...")
+    # print("Calculating effort...")
     df = df[df.PL == lang]
     df_pos = df[df.label == 1]
     df_pos = df_pos[['repo', 'commit_id', 'LOC_MOD']]
@@ -226,15 +226,15 @@ def get_effort(df, lang, threshold, predicted, url_to_hunk_count=None):
     f1 = 2 * (precision * recall) / (precision + recall)
     pci = commit_count / len(predicted)
 
-    print("Total commit: {}".format(total_commits))
-    print("Commit count: {}".format(commit_count))
-    print("Percentage commit: {}".format(commit_count/total_commits))
-    print("Vulnerability found: {}".format(detected_vulnerabilities))
-    print("Total vulnerabilities: {}".format(total_vulnerabilities))
+    # print("Total commit: {}".format(total_commits))
+    # print("Commit count: {}".format(commit_count))
+    # print("Percentage commit: {}".format(commit_count/total_commits))
+    # print("Vulnerability found: {}".format(detected_vulnerabilities))
+    # print("Total vulnerabilities: {}".format(total_vulnerabilities))
     # print("Precision: {}".format(precision))
     # print("Recall: {}".format(recall))
     # print("F1: {}".format(f1))
-    print("PCI: {}". format(pci))
+    # print("PCI: {}". format(pci))
     # print("IFA: {}".format(ifa))
 
     return detected_vulnerabilities / total_vulnerabilities, predicted_indices, non_vul_indices
@@ -271,7 +271,7 @@ def get_recall_effort(threshold, predicted, total_vul):
 
 
 def calculate_effort(predicted_path, lang, url_to_hunk_count=None, url_set=None):
-    print("Reading dataset")
+    # print("Reading dataset")
     df = pd.read_csv(dataset_name)
     df = df[df.partition == 'test']
 
@@ -362,10 +362,10 @@ def calculate_effort_hunk(predicted_path, lang):
     effort_3, predicted_indices, _ = get_effort_hunk_or_file(df, lang, 0.15, predicted, url_to_hunk_count)
     effort_4, predicted_indices, _ = get_effort_hunk_or_file(df, lang, 0.20, predicted, url_to_hunk_count)
 
-    print("Effort 5%: {}".format(effort_1))
-    print("Effort 10%: {}".format(effort_2))
-    print("Effort 15%: {}".format(effort_3))
-    print("Effort 20%: {}".format(effort_4))
+    print("CostEffort@5%: {}".format(effort_1))
+    print("CostEffort@10%: {}".format(effort_2))
+    print("CostEffort@15%: {}".format(effort_3))
+    print("CostEffort@20%: {}".format(effort_4))
 
     return predicted_indices
 
@@ -441,7 +441,7 @@ def calculate_recall_effort(predicted_path, lang):
     return predicted_indices
 
 def get_normalized_effort(df, lang, threshold, predicted, url_to_hunk_count=None):
-    print("Calculating effort...")
+    # print("Calculating effort...")
     df = df[df.PL == lang]
     df_pos = df[df.label == 1]
     df_pos = df_pos[['repo', 'commit_id', 'LOC_MOD']]
@@ -603,7 +603,7 @@ def get_security_data(dataset_name, need_file_count=False):
 
 
 def get_data(need_file_count=False):
-    print("Reading dataset...")
+    # print("Reading dataset...")
     if os.path.isfile("url_to_loc.txt") and os.path.isfile("url_to_file_count.txt"):
         url_to_label = {}
         url_to_loc_mod = {}
@@ -669,7 +669,7 @@ def get_data(need_file_count=False):
 
 
 def calculate_normalized_effort(predicted_path, lang, url_to_hunk_count=None, url_set=None):
-    print("Reading dataset")
+    # print("Reading dataset")
     df = pd.read_csv(dataset_name)
     df = df[df.partition == 'test']
 
@@ -693,10 +693,10 @@ def calculate_normalized_effort(predicted_path, lang, url_to_hunk_count=None, ur
 
     predicted = sorted(predicted, key=lambda x: (-x[1], x[2]))
 
-    print("Normalized Effort 5%: {}".format(get_normalized_effort(df, lang, 0.05, predicted, url_to_hunk_count)))
-    print("Normalized Effort 10%: {}".format(get_normalized_effort(df, lang, 0.10, predicted, url_to_hunk_count)))
-    print("Normalized Effort 15%: {}".format(get_normalized_effort(df, lang, 0.15, predicted, url_to_hunk_count)))
-    print("Normalized Effort 20%: {}".format(get_normalized_effort(df, lang, 0.2, predicted, url_to_hunk_count)))
+    print("Popt@5%: {}".format(get_normalized_effort(df, lang, 0.05, predicted, url_to_hunk_count)))
+    print("Popt@10%: {}".format(get_normalized_effort(df, lang, 0.10, predicted, url_to_hunk_count)))
+    print("Popt@15%: {}".format(get_normalized_effort(df, lang, 0.15, predicted, url_to_hunk_count)))
+    print("Popt@20%: {}".format(get_normalized_effort(df, lang, 0.2, predicted, url_to_hunk_count)))
 
 
 def write_predicted_indices_to_file(result_file_path, predicted_indices_file_path):
@@ -802,10 +802,10 @@ def calculate_auc(prob_path, url_to_label, url_set=None):
 
     auc_pr = metrics.average_precision_score(y_test, y_pred)
     print("auc: {}".format(auc))
-    print("auc_pr: {}".format(auc_pr))
-    print("precision: {}".format(precision))
-    print("recall: {}".format(recall))
-    print("f1: {}".format(f1))
+    # print("auc_pr: {}".format(auc_pr))
+    # print("precision: {}".format(precision))
+    # print("recall: {}".format(recall))
+    # print("f1: {}".format(f1))
 
     # for prob in y_prob:
     #     print(prob)
@@ -855,7 +855,7 @@ def test_new_metric(model_prob_path_java, model_prob_path_python, model_new_prob
     # calculate_effort(model_new_prob_python_path, 'python')
     # calculate_normalized_effort(model_new_prob_python_path, 'python')
 
-    print(64 * '-')
+    # print(64 * '-')
 
 def get_pred_data(file_path, url_to_label, url_to_loc_mod):
     df = pd.read_csv(file_path, header=None)
