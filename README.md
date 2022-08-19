@@ -90,3 +90,12 @@ Next, we need to train seven feature extractors
 | 6                | python variant_6.py |           
 | 7                | python variant_7.py |  
 | 8                | python variant_8.py |  
+
+
+#### Infer feature extractors and train neural classifier
+
+Simply use the following two commands:
+
+```python3 feature_extractor_infer.py```
+
+```python3 ensemble_classifier.py --model_path model/patch_ensemble_model.sav --java_result_path probs/prob_ensemble_classifier_test_java.txt --python_result_path probs/prob_ensemble_classifier_test_python.txt```
