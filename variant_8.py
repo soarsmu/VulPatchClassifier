@@ -23,8 +23,8 @@ EMBEDDING_DIRECTORY = '../finetuned_embeddings/variant_8'
 
 model_folder_path = os.path.join(directory, 'model')
 
-BEST_MODEL_PATH = 'model/patch_variant_8_best_model.sav'
-CURRENT_MODEL_PATH = 'model/patch_variant_8_current_model.sav'
+BEST_MODEL_PATH = 'model/patch_variant_8_finetune_1_epoch_best_model.sav'
+CURRENT_MODEL_PATH = 'model/patch_variant_8_finetune_1_epoch_best_model.sav'
 NUMBER_OF_EPOCHS = 60
 EARLY_STOPPING_ROUND = 5
 
