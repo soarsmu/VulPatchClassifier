@@ -64,14 +64,17 @@ def read_features_from_file(file_path):
     return data
 
 
-def read_feature_list(file_path_list, reshape=False, need_list=False):
+def read_feature_list(file_path_list, reshape=False, need_list=False, need_extend=False):
     url_to_feature = {}
     for file_path in file_path_list:
         data = read_features_from_file(file_path)
         for url, feature in data.items():
             if url not in url_to_feature:
                 url_to_feature[url] = []
-            url_to_feature[url].append(feature) 
+            if not need_extend:
+                url_to_feature[url].append(feature)
+            else:
+                url_to_feature[url].extend(feature) 
     if not reshape:
         return url_to_feature
     else:

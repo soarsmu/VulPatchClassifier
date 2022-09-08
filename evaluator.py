@@ -73,6 +73,10 @@ def do_rq2():
     calculate_normalized_effort(model_new_prob_python_path, 'python')
 
 
+def do_rq3():
+    pass
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Ensemble Classifier')
