@@ -55,6 +55,8 @@ NUM_HEADS = 8
 
 cos = nn.CosineSimilarity(dim=1)
 
+MAX_VULN_LOC = 308
+
 HUNK_COUNT_THRESHOLD = 5
 
 def get_url_to_loc(item_list, url_to_hunk_count=None):
@@ -755,7 +757,7 @@ def test():
 
 
 def calculate_prob(prob, loc):
-    return (prob * (1 - min(1, math.log(loc, 308))))
+    return (prob * (1 - min(1, math.log(loc, MAX_VULN_LOC))))
 
 
 def write_new_metric(file_path, dest_path):
@@ -1123,8 +1125,22 @@ def evaluate_pca():
     calculate_effort(model_pca_prob_path_java_new, 'java')
     calculate_normalized_effort(model_pca_prob_path_java_new, 'java')
 
+def evaluate_cfs():
+    model_prob_path_java = 'probs/prob_ensemble_classifier_cfs_test_java.txt'
+    model_prob_path_python = 'probs/prob_ensemble_classifier_cfs_test_python.txt'
+    model_prob_path_java_new = 'probs/prob_ensemble_classifier_cfs_test_java_new.txt'
+    model_prob_path_python_new = 'probs/prob_ensemble_classifier_cfs_test_python_new.txt'
+
+    test_new_metric(model_prob_path_java, model_prob_path_python, model_prob_path_java_new, model_prob_path_python_new)
+    
+    url_to_label, url_to_loc_mod = get_data()
+
+    calculate_auc(model_prob_path_python_new, url_to_label)
+    calculate_effort(model_prob_path_python_new, 'python')
+    calculate_normalized_effort(model_prob_path_python_new, 'python')
+
 
 if __name__ == '__main__':
     # evaluate_security_subdataset()
     # evaluate_different_design()
-    evaluate_pca()
+    evaluate_cfs()

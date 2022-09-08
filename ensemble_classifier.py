@@ -357,7 +357,7 @@ def do_train(args):
           test_python_generator=test_python_generator)
 
 
-def infer_dataset(partition, feature_path):
+def infer_dataset(model_path, partition, ablation_study, variant_to_drop, prob_path):
     # val_feature_path = [
     #     'features/feature_variant_1_val.txt',
     #     'features/feature_variant_2_val.txt',
@@ -389,7 +389,9 @@ def infer_dataset(partition, feature_path):
         'features/feature_variant_8_test_python.txt'
     ]
 
-    model = EnsembleModelHunkLevelFCN(False, [])
+    # model = EnsembleModelHunkLevelFCN(False, [])
+
+    model = EnsembleModel(ablation_study, variant_to_drop)
 
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
@@ -437,8 +439,8 @@ def infer_dataset(partition, feature_path):
 
 
 
-    # write_prob_to_file('probs/prob_ensemble_classifier_val.txt', urls, probs)
-    write_feature_to_file(feature_path, urls, features)
+    write_prob_to_file(prob_path, urls, probs)
+    # write_feature_to_file(feature_path, urls, features)
     print("Precision: {}".format(precision))
     print("Recall: {}".format(recall))
     print("F1: {}".format(f1))
