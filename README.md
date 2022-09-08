@@ -99,3 +99,24 @@ Simply use the following two commands:
 ```python3 feature_extractor_infer.py```
 
 ```python3 ensemble_classifier.py --model_path model/patch_ensemble_model.sav --java_result_path probs/prob_ensemble_classifier_test_java.txt --python_result_path probs/prob_ensemble_classifier_test_python.txt```
+
+
+#### Apply adjustment function
+
+Simply run:
+
+```python adjustment_runner.py```
+
+#### Evaluate MiDas
+
+The script for evaluation is placed in evaluator.py
+
+Run evaluator.py with parameter "--rq <rq_number>" to evaluate MiDas with the corresponding research questions:
+
+**RQ1: Performance of MiDas on Java and Python project**
+
+```python evaluator.py --rq 1```
+
+**RQ2: Performance of MiDas with/without adjustment function**
+
+```python evaluator.py --rq 2```
