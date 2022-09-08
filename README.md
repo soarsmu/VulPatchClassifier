@@ -122,3 +122,23 @@ Run evaluator.py with parameter "--rq <rq_number>" to evaluate MiDas with the co
 **RQ2: Performance of MiDas with/without adjustment function**
 
 ```python evaluator.py --rq 2```
+
+**RQ3: Performance of MiDas when continuously adding granularities**
+
+To obtain performance of MiDas using only line level, run:
+
+```python evaluator.py --rq 3 --mode 1```
+
+To obtain performance of MiDas using only line level + hunk level, run two commands:
+
+```python ensemble_classifier.py --ablation_study True -v 1 -v 2 -v 5 -v6  --model_path model/test_ablation_line_hunk_model.sav --java_result_path probs/test_ablation_line_hunk_java.txt --python_result_path probs/test_ablation_line_hunk_python.txt```
+
+```python evaluator.py --rq 3 --mode 2```
+
+To obtain performance of MiDas using only line level + hunk level + file level, run two commands:
+
+```python ensemble_classifier.py --ablation_study True -v 1 -v 5  --model_path model/test_ablation_line_hunk_file_model.sav --java_result_path probs/test_ablation_line_hunk_file_java.txt --python_result_path probs/test_ablation_line_hunk_file_python.txt```
+
+```python evaluator.py --rq 3 --mode 3```
+
+The performance of MiDas using all granularities is obtained in RQ1 (we hope you run it successfully).
