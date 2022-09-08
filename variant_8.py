@@ -201,7 +201,7 @@ def train(model, learning_rate, number_of_epochs, training_generator, val_genera
 
             early_stopping(val_loss, model)
 
-            torch.save(model.state_dict(), CURRENT_MODEL_PATH)
+            # torch.save(model.state_dict(), CURRENT_MODEL_PATH)
 
             if early_stopping.early_stop:
                 print("Early stopping")
