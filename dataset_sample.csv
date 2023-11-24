@@ -1,0 +1,444 @@
+commit_id,repo,filename,label,partition,PL,diff,committer_date,msg,MOD_DIFF,BPE_MOD_DIFF,ADD_DIFF,REM_DIFF,LOC_ADD,LOC_REM,LOC_MOD,commit_repo,cve_list,file_counts_x,Total_LOC_MOD,Total_LOC_ADD,Total_LOC_REM,isAddDel,new_or_rem_file,file_counts_y,file_counts
+982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6,apache/cxf,AbstractSaml2BearerGrant.java,0,test,java,"@@ -0,0 +1,68 @@
++/**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements. See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership. The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * ""License""); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * ""AS IS"" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.apache.cxf.rs.security.oauth2.grants.saml;
++
++import javax.ws.rs.core.MultivaluedMap;
++
++import org.apache.cxf.jaxrs.impl.MetadataMap;
++import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
++import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
++import org.apache.cxf.rs.security.oauth2.saml.Base64UrlUtility;
++import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
++
++public abstract class AbstractSaml2BearerGrant implements AccessTokenGrant {
++    private String assertion;
++    private String scope;
++    private boolean encoded; 
++    private String grantType;
++    protected AbstractSaml2BearerGrant(String grantType, String assertion, boolean encoded, String scope) {
++        this.grantType = grantType;
++        this.assertion = assertion;
++        this.encoded = encoded;
++        this.scope = scope;
++    }
++    
++    public String getType() {
++        return grantType;
++    }
++
++    protected MultivaluedMap<String, String> initMap() {
++        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
++        map.putSingle(OAuthConstants.GRANT_TYPE, grantType);
++        return map;
++    }
++
++    protected void addScope(MultivaluedMap<String, String> map) {
++        if (scope != null) {
++            map.putSingle(OAuthConstants.SCOPE, scope);
++        }
++    }
++    
++    protected String encodeAssertion() {
++        if (encoded) {
++            return assertion;
++        }
++        
++        try {
++            return Base64UrlUtility.encode(assertion);
++        } catch (Exception ex) {
++            throw new OAuthServiceException(ex.getMessage(), ex);
++        }
++    }
++}
+",2013-03-03 19:00:46+00:00,"Minor update to OAuth2 Saml code
+
+git-svn-id: https://svn.apache.org/repos/asf/cxf/trunk@1452102 13f79535-47bb-0310-9956-ffa450edef68","+ package org.apache.cxf.rs.security.oauth2.grants.saml; 
+ + import javax.ws.rs.core.MultivaluedMap; 
+ + import org.apache.cxf.jaxrs.impl.MetadataMap; 
+ + import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant; 
+ + import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException; 
+ + import org.apache.cxf.rs.security.oauth2.saml.Base64UrlUtility; 
+ + import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants; 
+ + public abstract class AbstractSaml2BearerGrant implements AccessTokenGrant { 
+ + private String assertion; 
+ + private String scope; 
+ + private boolean encoded; 
+ + private String grantType; 
+ + protected AbstractSaml2BearerGrant(String grantType, String assertion, boolean encoded, String scope) { 
+ + this.grantType = grantType; 
+ + this.assertion = assertion; 
+ + this.encoded = encoded; 
+ + this.scope = scope; 
+ + } 
+ + public String getType() { 
+ + return grantType; 
+ + } 
+ + protected MultivaluedMap<String, String> initMap() { 
+ + MultivaluedMap<String, String> map = new MetadataMap<String, String>(); 
+ + map.putSingle(OAuthConstants.GRANT_TYPE, grantType); 
+ + return map; 
+ + } 
+ + protected void addScope(MultivaluedMap<String, String> map) { 
+ + if (scope != null) { 
+ + map.putSingle(OAuthConstants.SCOPE, scope); 
+ + } 
+ + } 
+ + protected String encodeAssertion() { 
+ + if (encoded) { 
+ + return assertion; 
+ + } 
+ + try { 
+ + return Base64UrlUtility.encode(assertion); 
+ + } catch (Exception ex) { 
+ + throw new OAuthServiceException(ex.getMessage(), ex); 
+ + } 
+ + } 
+ + }","+ package org . apache . cxf . rs . security . oauth 2 . grants . saml ; 
+ + import javax . ws . rs . core . multivalued map ; 
+ + import org . apache . cxf . jaxrs . impl . metadata map ; 
+ + import org . apache . cxf . rs . security . oauth 2 . common . access token grant ; 
+ + import org . apache . cxf . rs . security . oauth 2 . provider . o auth service exception ; 
+ + import org . apache . cxf . rs . security . oauth 2 . saml . base 64 url utility ; 
+ + import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ + public abstract class abstract saml 2 bearer grant implements access token grant { 
+ + private string assertion ; 
+ + private string scope ; 
+ + private boolean encoded ; 
+ + private string grant type ; 
+ + protected abstract saml 2 bearer grant ( string grant type , string assertion , boolean encoded , string scope ) { 
+ + this . grant type = grant type ; 
+ + this . assertion = assertion ; 
+ + this . encoded = encoded ; 
+ + this . scope = scope ; 
+ + } 
+ + public string get type ( ) { 
+ + return grant type ; 
+ + } 
+ + protected multivalued map < string , string > init map ( ) { 
+ + multivalued map < string , string > map = new metadata map < string , string > ( ) ; 
+ + map . put single ( o auth constants . grant _ type , grant type ) ; 
+ + return map ; 
+ + } 
+ + protected void add scope ( multivalued map < string , string > map ) { 
+ + if ( scope ! = null ) { 
+ + map . put single ( o auth constants . scope , scope ) ; 
+ + } 
+ + } 
+ + protected string encode assertion ( ) { 
+ + if ( encoded ) { 
+ + return assertion ; 
+ + } 
+ + try { 
+ + return base 64 url utility . encode ( assertion ) ; 
+ + } catch ( exception ex ) { 
+ + throw new o auth service exception ( ex . get message ( ) , ex ) ; 
+ + } 
+ + } 
+ + }","+ package org . apache . cxf . rs . security . oauth 2 . grants . saml ; 
+ + import javax . ws . rs . core . multivalued map ; 
+ + import org . apache . cxf . jaxrs . impl . metadata map ; 
+ + import org . apache . cxf . rs . security . oauth 2 . common . access token grant ; 
+ + import org . apache . cxf . rs . security . oauth 2 . provider . o auth service exception ; 
+ + import org . apache . cxf . rs . security . oauth 2 . saml . base 64 url utility ; 
+ + import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ + public abstract class abstract saml 2 bearer grant implements access token grant { 
+ + private string assertion ; 
+ + private string scope ; 
+ + private boolean encoded ; 
+ + private string grant type ; 
+ + protected abstract saml 2 bearer grant ( string grant type , string assertion , boolean encoded , string scope ) { 
+ + this . grant type = grant type ; 
+ + this . assertion = assertion ; 
+ + this . encoded = encoded ; 
+ + this . scope = scope ; 
+ + } 
+ + public string get type ( ) { 
+ + return grant type ; 
+ + } 
+ + protected multivalued map < string , string > init map ( ) { 
+ + multivalued map < string , string > map = new metadata map < string , string > ( ) ; 
+ + map . put single ( o auth constants . grant _ type , grant type ) ; 
+ + return map ; 
+ + } 
+ + protected void add scope ( multivalued map < string , string > map ) { 
+ + if ( scope ! = null ) { 
+ + map . put single ( o auth constants . scope , scope ) ; 
+ + } 
+ + } 
+ + protected string encode assertion ( ) { 
+ + if ( encoded ) { 
+ + return assertion ; 
+ + } 
+ + try { 
+ + return base 64 url utility . encode ( assertion ) ; 
+ + } catch ( exception ex ) { 
+ + throw new o auth service exception ( ex . get message ( ) , ex ) ; 
+ + } 
+ + } 
+ + }",,42.0,1.0,43.0,982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6apache/cxf,,,,,,,,3.0,
+982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6,apache/cxf,Saml2BearerGrant.java,0,test,java,"@@ -20,18 +20,9 @@ package org.apache.cxf.rs.security.oauth2.grants.saml;
+ 
+ import javax.ws.rs.core.MultivaluedMap;
+ 
+-import org.apache.cxf.jaxrs.impl.MetadataMap;
+-import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
+-import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
+-import org.apache.cxf.rs.security.oauth2.saml.Base64UrlUtility;
+ import org.apache.cxf.rs.security.oauth2.saml.Constants;
+-import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
+ 
+-public class Saml2BearerGrant implements AccessTokenGrant {
+-    private String assertion;
+-    private String scope;
+-    private boolean encoded; 
+-    
++public class Saml2BearerGrant extends AbstractSaml2BearerGrant {
+     public Saml2BearerGrant(String assertion) {
+         this(assertion, false);
+     }
+@@ -45,34 +36,13 @@ public class Saml2BearerGrant implements AccessTokenGrant {
+     }
+     
+     public Saml2BearerGrant(String assertion, boolean encoded, String scope) {
+-        this.assertion = assertion;
+-        this.encoded = encoded;
+-        this.scope = scope;
++        super(Constants.SAML2_BEARER_GRANT, assertion, encoded, scope);
+     }
+     
+-    public String getType() {
+-        return Constants.SAML2_BEARER_GRANT;
+-    }
+-
+     public MultivaluedMap<String, String> toMap() {
+-        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+-        map.putSingle(OAuthConstants.GRANT_TYPE, Constants.SAML2_BEARER_GRANT);
++        MultivaluedMap<String, String> map = initMap();
+         map.putSingle(Constants.CLIENT_GRANT_ASSERTION_PARAM, encodeAssertion());
+-        if (scope != null) {
+-            map.putSingle(OAuthConstants.SCOPE, scope);
+-        }
++        addScope(map);
+         return map;
+     }
+-
+-    protected String encodeAssertion() {
+-        if (encoded) {
+-            return assertion;
+-        }
+-        
+-        try {
+-            return Base64UrlUtility.encode(assertion);
+-        } catch (Exception ex) {
+-            throw new OAuthServiceException(ex.getMessage(), ex);
+-        }
+-    }
+ }
+",2013-03-03 19:00:46+00:00,"Minor update to OAuth2 Saml code
+
+git-svn-id: https://svn.apache.org/repos/asf/cxf/trunk@1452102 13f79535-47bb-0310-9956-ffa450edef68","- import org.apache.cxf.jaxrs.impl.MetadataMap; 
+ - import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant; 
+ - import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException; 
+ - import org.apache.cxf.rs.security.oauth2.saml.Base64UrlUtility; 
+ - import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants; 
+ - public class Saml2BearerGrant implements AccessTokenGrant { 
+ - private String assertion; 
+ - private String scope; 
+ - private boolean encoded; 
+ + public class Saml2BearerGrant extends AbstractSaml2BearerGrant { 
+ - this.assertion = assertion; 
+ - this.encoded = encoded; 
+ - this.scope = scope; 
+ + super(Constants.SAML2_BEARER_GRANT, assertion, encoded, scope); 
+ - public String getType() { 
+ - return Constants.SAML2_BEARER_GRANT; 
+ - } 
+ - MultivaluedMap<String, String> map = new MetadataMap<String, String>(); 
+ - map.putSingle(OAuthConstants.GRANT_TYPE, Constants.SAML2_BEARER_GRANT); 
+ + MultivaluedMap<String, String> map = initMap(); 
+ - if (scope != null) { 
+ - map.putSingle(OAuthConstants.SCOPE, scope); 
+ - } 
+ + addScope(map); 
+ - protected String encodeAssertion() { 
+ - if (encoded) { 
+ - return assertion; 
+ - } 
+ - try { 
+ - return Base64UrlUtility.encode(assertion); 
+ - } catch (Exception ex) { 
+ - throw new OAuthServiceException(ex.getMessage(), ex); 
+ - } 
+ - }","- import org . apache . cxf . jaxrs . impl . metadata map ; 
+ - import org . apache . cxf . rs . security . oauth 2 . common . access token grant ; 
+ - import org . apache . cxf . rs . security . oauth 2 . provider . o auth service exception ; 
+ - import org . apache . cxf . rs . security . oauth 2 . saml . base 64 url utility ; 
+ - import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ - public class saml 2 bearer grant implements access token grant { 
+ - private string assertion ; 
+ - private string scope ; 
+ - private boolean encoded ; 
+ + public class saml 2 bearer grant extends abstract saml 2 bearer grant { 
+ - this . assertion = assertion ; 
+ - this . encoded = encoded ; 
+ - this . scope = scope ; 
+ + super ( constants . saml 2 _ bearer _ grant , assertion , encoded , scope ) ; 
+ - public string get type ( ) { 
+ - return constants . saml 2 _ bearer _ grant ; 
+ - } 
+ - multivalued map < string , string > map = new metadata map < string , string > ( ) ; 
+ - map . put single ( o auth constants . grant _ type , constants . saml 2 _ bearer _ grant ) ; 
+ + multivalued map < string , string > map = init map ( ) ; 
+ - if ( scope ! = null ) { 
+ - map . put single ( o auth constants . scope , scope ) ; 
+ - } 
+ + add scope ( map ) ; 
+ - protected string encode assertion ( ) { 
+ - if ( encoded ) { 
+ - return assertion ; 
+ - } 
+ - try { 
+ - return base 64 url utility . encode ( assertion ) ; 
+ - } catch ( exception ex ) { 
+ - throw new o auth service exception ( ex . get message ( ) , ex ) ; 
+ - } 
+ - }","+ public class saml 2 bearer grant extends abstract saml 2 bearer grant { 
+ + super ( constants . saml 2 _ bearer _ grant , assertion , encoded , scope ) ; 
+ + multivalued map < string , string > map = init map ( ) ; 
+ + add scope ( map ) ;","- import org . apache . cxf . jaxrs . impl . metadata map ; 
+ - import org . apache . cxf . rs . security . oauth 2 . common . access token grant ; 
+ - import org . apache . cxf . rs . security . oauth 2 . provider . o auth service exception ; 
+ - import org . apache . cxf . rs . security . oauth 2 . saml . base 64 url utility ; 
+ - import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ - public class saml 2 bearer grant implements access token grant { 
+ - private string assertion ; 
+ - private string scope ; 
+ - private boolean encoded ; 
+ - this . assertion = assertion ; 
+ - this . encoded = encoded ; 
+ - this . scope = scope ; 
+ - public string get type ( ) { 
+ - return constants . saml 2 _ bearer _ grant ; 
+ - } 
+ - multivalued map < string , string > map = new metadata map < string , string > ( ) ; 
+ - map . put single ( o auth constants . grant _ type , constants . saml 2 _ bearer _ grant ) ; 
+ - if ( scope ! = null ) { 
+ - map . put single ( o auth constants . scope , scope ) ; 
+ - } 
+ - protected string encode assertion ( ) { 
+ - if ( encoded ) { 
+ - return assertion ; 
+ - } 
+ - try { 
+ - return base 64 url utility . encode ( assertion ) ; 
+ - } catch ( exception ex ) { 
+ - throw new o auth service exception ( ex . get message ( ) , ex ) ; 
+ - } 
+ - }",4.0,30.0,34.0,982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6apache/cxf,,,,,,,,3.0,
+982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6,apache/cxf,SamlBearerClientCredentialsGrant.java,0,test,java,"@@ -0,0 +1,40 @@
++/**
++ * Licensed to the Apache Software Foundation (ASF) under one
++ * or more contributor license agreements. See the NOTICE file
++ * distributed with this work for additional information
++ * regarding copyright ownership. The ASF licenses this file
++ * to you under the Apache License, Version 2.0 (the
++ * ""License""); you may not use this file except in compliance
++ * with the License. You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * ""AS IS"" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied. See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.apache.cxf.rs.security.oauth2.grants.saml;
++
++import javax.ws.rs.core.MultivaluedMap;
++
++import org.apache.cxf.rs.security.oauth2.saml.Constants;
++import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
++
++public class SamlBearerClientCredentialsGrant extends AbstractSaml2BearerGrant {
++    
++    public SamlBearerClientCredentialsGrant(String assertion, boolean encoded, String scope) {
++        super(OAuthConstants.CLIENT_CREDENTIALS_GRANT, assertion, encoded, scope);
++    }
++    
++    public MultivaluedMap<String, String> toMap() {
++        MultivaluedMap<String, String> map = initMap();
++        map.putSingle(Constants.CLIENT_AUTH_ASSERTION_TYPE, Constants.CLIENT_AUTH_SAML2_BEARER);
++        map.putSingle(Constants.CLIENT_AUTH_ASSERTION_PARAM, encodeAssertion());
++        addScope(map);
++        return map;
++    }
++
++}
+",2013-03-03 19:00:46+00:00,"Minor update to OAuth2 Saml code
+
+git-svn-id: https://svn.apache.org/repos/asf/cxf/trunk@1452102 13f79535-47bb-0310-9956-ffa450edef68","+ package org.apache.cxf.rs.security.oauth2.grants.saml; 
+ + import javax.ws.rs.core.MultivaluedMap; 
+ + import org.apache.cxf.rs.security.oauth2.saml.Constants; 
+ + import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants; 
+ + public class SamlBearerClientCredentialsGrant extends AbstractSaml2BearerGrant { 
+ + public SamlBearerClientCredentialsGrant(String assertion, boolean encoded, String scope) { 
+ + super(OAuthConstants.CLIENT_CREDENTIALS_GRANT, assertion, encoded, scope); 
+ + } 
+ + public MultivaluedMap<String, String> toMap() { 
+ + MultivaluedMap<String, String> map = initMap(); 
+ + map.putSingle(Constants.CLIENT_AUTH_ASSERTION_TYPE, Constants.CLIENT_AUTH_SAML2_BEARER); 
+ + map.putSingle(Constants.CLIENT_AUTH_ASSERTION_PARAM, encodeAssertion()); 
+ + addScope(map); 
+ + return map; 
+ + } 
+ + }","+ package org . apache . cxf . rs . security . oauth 2 . grants . saml ; 
+ + import javax . ws . rs . core . multivalued map ; 
+ + import org . apache . cxf . rs . security . oauth 2 . saml . constants ; 
+ + import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ + public class saml bearer client credentials grant extends abstract saml 2 bearer grant { 
+ + public saml bearer client credentials grant ( string assertion , boolean encoded , string scope ) { 
+ + super ( o auth constants . client _ credentials _ grant , assertion , encoded , scope ) ; 
+ + } 
+ + public multivalued map < string , string > to map ( ) { 
+ + multivalued map < string , string > map = init map ( ) ; 
+ + map . put single ( constants . client _ auth _ assertion _ type , constants . client _ auth _ saml 2 _ bearer ) ; 
+ + map . put single ( constants . client _ auth _ assertion _ param , encode assertion ( ) ) ; 
+ + add scope ( map ) ; 
+ + return map ; 
+ + } 
+ + }","+ package org . apache . cxf . rs . security . oauth 2 . grants . saml ; 
+ + import javax . ws . rs . core . multivalued map ; 
+ + import org . apache . cxf . rs . security . oauth 2 . saml . constants ; 
+ + import org . apache . cxf . rs . security . oauth 2 . utils . o auth constants ; 
+ + public class saml bearer client credentials grant extends abstract saml 2 bearer grant { 
+ + public saml bearer client credentials grant ( string assertion , boolean encoded , string scope ) { 
+ + super ( o auth constants . client _ credentials _ grant , assertion , encoded , scope ) ; 
+ + } 
+ + public multivalued map < string , string > to map ( ) { 
+ + multivalued map < string , string > map = init map ( ) ; 
+ + map . put single ( constants . client _ auth _ assertion _ type , constants . client _ auth _ saml 2 _ bearer ) ; 
+ + map . put single ( constants . client _ auth _ assertion _ param , encode assertion ( ) ) ; 
+ + add scope ( map ) ; 
+ + return map ; 
+ + } 
+ + }",,16.0,1.0,17.0,982fa9b8c7149b51b73405e8cb08b1ce82eb8fe6apache/cxf,,,,,,,,3.0,

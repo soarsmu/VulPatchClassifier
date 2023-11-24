@@ -1,0 +1,163 @@
+commit_id,repo,filename,label,partition,PL,diff,committer_date,msg,MOD_DIFF,BPE_MOD_DIFF,ADD_DIFF,REM_DIFF,LOC_ADD,LOC_REM,LOC_MOD,commit_repo,cve_list,file_counts_x,Total_LOC_MOD,Total_LOC_ADD,Total_LOC_REM,isAddDel,new_or_rem_file,file_counts_y,file_counts
+14978697c3f43d22b7ea076070192666ea2859ec,apache/cxf-fediz,ClientRegistrationService.java,0,test,java,"@@ -20,6 +20,7 @@
+ package org.apache.cxf.fediz.service.oidc;
+ 
+ import java.net.URI;
++import java.net.URISyntaxException;
+ import java.util.ArrayList;
+ import java.util.Collection;
+ import java.util.Collections;
+@@ -206,12 +207,11 @@ public class ClientRegistrationService {
+         if (!(""confidential"".equals(appType) || ""public"".equals(appType))) {
+             throw new InvalidRegistrationException(""An invalid client type was specified: "" + appType);
+         }
+-        if (redirectURI != null) {
+-            String[] schemes = {""https""};
+-            UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
+-            if (!urlValidator.isValid(redirectURI)) {
+-                throw new InvalidRegistrationException(""An invalid redirect URI was specified: "" + redirectURI);
+-            }
++        if (redirectURI != null && !"""".equals(redirectURI) && !isValidURI(redirectURI, false)) {
++            throw new InvalidRegistrationException(""An invalid redirect URI was specified: "" + redirectURI);
++        }
++        if (audience != null && !"""".equals(audience) && !isValidURI(audience, true)) {
++            throw new InvalidRegistrationException(""An invalid audience URI was specified: "" + audience);
+         }
+         
+         String clientId = generateClientId();
+@@ -250,6 +250,36 @@ public class ClientRegistrationService {
+         
+         return registerNewClient(newClient);
+     }
++    
++    private boolean isValidURI(String uri, boolean requireHttps) {
++        
++        UrlValidator urlValidator = null;
++        
++        if (requireHttps) {
++            String[] schemes = {""https""};
++            urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
++        } else {
++            urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS
++                                                     + UrlValidator.ALLOW_ALL_SCHEMES);
++        }
++        
++        if (!urlValidator.isValid(uri)) {
++            return false;
++        }
++        
++        // Do additional checks on the URI
++        try {
++            URI parsedURI = new URI(uri);
++            // The URI can't have a fragment according to the OAuth 2.0 spec (+ audience spec)
++            if (parsedURI.getFragment() != null) {
++                return false;
++            }
++        } catch (URISyntaxException ex) {
++            return false;
++        }
++        
++        return true;
++    }
+ 
+     protected String generateClientId() {
+         return Base64UrlUtility.encode(CryptoUtils.generateSecureRandomBytes(10));
+",2016-01-22 15:49:01+00:00,More work on URI validation in OIDC,"+ import java.net.URISyntaxException; 
+ - if (redirectURI != null) { 
+ - String[] schemes = {""https""}; 
+ - UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS); 
+ - if (!urlValidator.isValid(redirectURI)) { 
+ - throw new InvalidRegistrationException(""An invalid redirect URI was specified: "" + redirectURI); 
+ - } 
+ + if (redirectURI != null && !"""".equals(redirectURI) && !isValidURI(redirectURI, false)) { 
+ + throw new InvalidRegistrationException(""An invalid redirect URI was specified: "" + redirectURI); 
+ + } 
+ + if (audience != null && !"""".equals(audience) && !isValidURI(audience, true)) { 
+ + throw new InvalidRegistrationException(""An invalid audience URI was specified: "" + audience); 
+ + private boolean isValidURI(String uri, boolean requireHttps) { 
+ + UrlValidator urlValidator = null; 
+ + if (requireHttps) { 
+ + String[] schemes = {""https""}; 
+ + urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS); 
+ + } else { 
+ + urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS 
+ + + UrlValidator.ALLOW_ALL_SCHEMES); 
+ + } 
+ + if (!urlValidator.isValid(uri)) { 
+ + return false; 
+ + } 
+ + try { 
+ + URI parsedURI = new URI(uri); 
+ + if (parsedURI.getFragment() != null) { 
+ + return false; 
+ + } 
+ + } catch (URISyntaxException ex) { 
+ + return false; 
+ + } 
+ + return true; 
+ + }","+ import java . net . uri syntax exception ; 
+ - if ( redirect uri ! = null ) { 
+ - string [ ] schemes = { "" https "" } ; 
+ - url validator url validator = new url validator ( schemes , url validator . allow _ local _ urls ) ; 
+ - if ( ! url validator . is valid ( redirect uri ) ) { 
+ - throw new invalid registration exception ( "" an invalid redirect uri was specified : "" + redirect uri ) ; 
+ - } 
+ + if ( redirect uri ! = null & & ! "" "" . equals ( redirect uri ) & & ! is valid uri ( redirect uri , false ) ) { 
+ + throw new invalid registration exception ( "" an invalid redirect uri was specified : "" + redirect uri ) ; 
+ + } 
+ + if ( audience ! = null & & ! "" "" . equals ( audience ) & & ! is valid uri ( audience , true ) ) { 
+ + throw new invalid registration exception ( "" an invalid audience uri was specified : "" + audience ) ; 
+ + private boolean is valid uri ( string uri , boolean require https ) { 
+ + url validator url validator = null ; 
+ + if ( require https ) { 
+ + string [ ] schemes = { "" https "" } ; 
+ + url validator = new url validator ( schemes , url validator . allow _ local _ urls ) ; 
+ + } else { 
+ + url validator = new url validator ( url validator . allow _ local _ urls 
+ + + url validator . allow _ all _ schemes ) ; 
+ + } 
+ + if ( ! url validator . is valid ( uri ) ) { 
+ + return false ; 
+ + } 
+ + try { 
+ + uri parsed uri = new uri ( uri ) ; 
+ + if ( parsed uri . get fragment ( ) ! = null ) { 
+ + return false ; 
+ + } 
+ + } catch ( uri syntax exception ex ) { 
+ + return false ; 
+ + } 
+ + return true ; 
+ + }","+ import java . net . uri syntax exception ; 
+ + if ( redirect uri ! = null & & ! "" "" . equals ( redirect uri ) & & ! is valid uri ( redirect uri , false ) ) { 
+ + throw new invalid registration exception ( "" an invalid redirect uri was specified : "" + redirect uri ) ; 
+ + } 
+ + if ( audience ! = null & & ! "" "" . equals ( audience ) & & ! is valid uri ( audience , true ) ) { 
+ + throw new invalid registration exception ( "" an invalid audience uri was specified : "" + audience ) ; 
+ + private boolean is valid uri ( string uri , boolean require https ) { 
+ + url validator url validator = null ; 
+ + if ( require https ) { 
+ + string [ ] schemes = { "" https "" } ; 
+ + url validator = new url validator ( schemes , url validator . allow _ local _ urls ) ; 
+ + } else { 
+ + url validator = new url validator ( url validator . allow _ local _ urls 
+ + + url validator . allow _ all _ schemes ) ; 
+ + } 
+ + if ( ! url validator . is valid ( uri ) ) { 
+ + return false ; 
+ + } 
+ + try { 
+ + uri parsed uri = new uri ( uri ) ; 
+ + if ( parsed uri . get fragment ( ) ! = null ) { 
+ + return false ; 
+ + } 
+ + } catch ( uri syntax exception ex ) { 
+ + return false ; 
+ + } 
+ + return true ; 
+ + }","- if ( redirect uri ! = null ) { 
+ - string [ ] schemes = { "" https "" } ; 
+ - url validator url validator = new url validator ( schemes , url validator . allow _ local _ urls ) ; 
+ - if ( ! url validator . is valid ( redirect uri ) ) { 
+ - throw new invalid registration exception ( "" an invalid redirect uri was specified : "" + redirect uri ) ; 
+ - }",28.0,6.0,34.0,14978697c3f43d22b7ea076070192666ea2859ecapache/cxf-fediz,,,,,,,,1.0,
