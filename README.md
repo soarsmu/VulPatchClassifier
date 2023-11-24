@@ -142,3 +142,15 @@ To obtain performance of MiDas using only line level + hunk level + file level, 
 ```python evaluator.py --rq 3 --mode 3```
 
 The performance of MiDas using all granularities is obtained in RQ1 (we hope you run it successfully).
+
+
+## Inference
+
+To infer a commit, please use function *infer(commit, LOC)* in **inference.py**
+
+Format: 
+        Commit: list of code changes at file level
+        LOC: Total lines of code change for the ease of using our adjustment function
+
+        
+
